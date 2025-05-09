@@ -6,7 +6,7 @@ import {
   Radio, 
   ListCheck, 
   Calendar, 
-  Upload, 
+  Upload,
   Plus,
   Hash,
   Mail,
@@ -14,16 +14,34 @@ import {
   ToggleLeft,
   Sliders,
   Clock,
-  Eye
+  Eye,
+  ArrowRight,
+  ArrowLeft
 } from 'lucide-react';
 import { ElementType } from '@/types/form-builder';
 
 interface FormFieldIconProps {
   type: ElementType;
   size?: number;
+  buttonType?: string;
 }
 
-export const FormFieldIcon = ({ type, size = 18 }: FormFieldIconProps) => {
+export const FormFieldIcon = ({ type, size = 18, buttonType }: FormFieldIconProps) => {
+  if (type === 'button' && buttonType) {
+    switch (buttonType) {
+      case 'next':
+        return <ArrowRight size={size} />;
+      case 'back':
+        return <ArrowLeft size={size} />;
+      case 'submit':
+        return <Plus size={size} />;
+      case 'reset':
+        return <Plus size={size} />;
+      default:
+        return <Plus size={size} />;
+    }
+  }
+
   switch (type) {
     case 'text':
       return <FileText size={size} />;

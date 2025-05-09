@@ -6,6 +6,7 @@ import { FormFieldIcon } from './FormFieldIcon';
 import { ELEMENT_TYPES, ElementType } from '@/types/form-builder';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { ChevronRight, ChevronDown } from 'lucide-react';
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ElementPaletteItemProps {
   type: ElementType;
@@ -72,29 +73,33 @@ const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
     <div className="space-y-3">
       <div className="font-medium">Form Elements</div>
       
-      {orderedCategories.map(category => {
-        const elements = categories[category];
-        if (!elements?.length) return null;
-        
-        return (
-          <Collapsible key={category} open={openCategories[category]} onOpenChange={() => toggleCategory(category)}>
-            <CollapsibleTrigger className="flex items-center w-full justify-between text-sm font-medium p-1 hover:bg-muted/30 rounded">
-              <span>{category}</span>
-              {openCategories[category] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-            </CollapsibleTrigger>
-            <CollapsibleContent className="space-y-2 mt-2">
-              {elements.map(element => (
-                <ElementPaletteItem 
-                  key={element.type} 
-                  type={element.type} 
-                  label={element.label} 
-                  onAddElement={onAddElement}
-                />
-              ))}
-            </CollapsibleContent>
-          </Collapsible>
-        );
-      })}
+      <ScrollArea className="h-[calc(100vh-120px)]">
+        <div className="pr-3 space-y-3">
+          {orderedCategories.map(category => {
+            const elements = categories[category];
+            if (!elements?.length) return null;
+            
+            return (
+              <Collapsible key={category} open={openCategories[category]} onOpenChange={() => toggleCategory(category)}>
+                <CollapsibleTrigger className="flex items-center w-full justify-between text-sm font-medium p-1 hover:bg-muted/30 rounded">
+                  <span>{category}</span>
+                  {openCategories[category] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-2 mt-2">
+                  {elements.map(element => (
+                    <ElementPaletteItem 
+                      key={element.type} 
+                      type={element.type} 
+                      label={element.label} 
+                      onAddElement={onAddElement}
+                    />
+                  ))}
+                </CollapsibleContent>
+              </Collapsible>
+            );
+          })}
+        </div>
+      </ScrollArea>
     </div>
   );
 };

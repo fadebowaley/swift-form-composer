@@ -18,13 +18,17 @@ import FormPreview from './FormPreview';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { generateElement, FormElementType, ElementType } from '@/types/form-builder';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Code, Eye } from 'lucide-react';
+import { Code, Eye, LayoutWizard } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { ThemeToggle } from '@/components/ThemeToggle';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 const FormBuilder = () => {
   const [elements, setElements] = useState<FormElementType[]>([]);
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'preview' | 'json'>('preview');
+  const [wizardMode, setWizardMode] = useState<boolean>(false);
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -61,8 +65,23 @@ const FormBuilder = () => {
     }
   };
 
+  const handleWizardModeToggle = (enabled: boolean) => {
+    setWizardMode(enabled);
+    
+    if (enabled) {
+      toast.info("Wizard mode enabled. You can now add Next/Back buttons for multi-step forms.");
+    }
+  };
+
   const handleAddElement = (type: ElementType) => {
     const newElement = generateElement(type);
+    
+    // If adding a button and wizard mode is on, default to "next" type
+    if (type === 'button' && wizardMode) {
+      newElement.properties.buttonType = 'next';
+      newElement.properties.buttonText = 'Next';
+    }
+    
     setElements([...elements, newElement]);
     setEditingElementId(newElement.id);
     toast.success(`Added ${type} element`);
@@ -127,27 +146,43 @@ const FormBuilder = () => {
     <div className="h-screen flex flex-col">
       <header className="border-b px-6 py-3 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Form Builder</h1>
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">Export</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => handleExportForm('json')}>
-                Export as JSON
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => handleExportForm('html')}>
-                Export as HTML
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+        <div className="flex items-center gap-4">
+          <div className="flex items-center space-x-2">
+            <Switch 
+              id="wizard-mode"
+              checked={wizardMode}
+              onCheckedChange={handleWizardModeToggle}
+            />
+            <Label htmlFor="wizard-mode" className="flex items-center gap-1 cursor-pointer">
+              <LayoutWizard size={16} />
+              <span>Wizard Mode</span>
+            </Label>
+          </div>
           
-          <Button variant="outline" onClick={handleClearForm}>
-            Clear
-          </Button>
-          <Button onClick={handleSaveForm}>
-            Save Form
-          </Button>
+          <ThemeToggle />
+          
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline">Export</Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => handleExportForm('json')}>
+                  Export as JSON
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleExportForm('html')}>
+                  Export as HTML
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+            
+            <Button variant="outline" onClick={handleClearForm}>
+              Clear
+            </Button>
+            <Button variant="blue" onClick={handleSaveForm}>
+              Save Form
+            </Button>
+          </div>
         </div>
       </header>
       
@@ -196,6 +231,7 @@ const FormBuilder = () => {
                       element={editingElement} 
                       onElementUpdate={handleElementUpdate}
                       elements={elements}
+                      wizardMode={wizardMode}
                     />
                   </div>
                 </ResizablePanel>
