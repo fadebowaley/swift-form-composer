@@ -14,9 +14,10 @@ interface ElementEditorProps {
   element: FormElementType | null;
   onElementUpdate: (element: FormElementType) => void;
   elements: FormElementType[]; // Added for conditional logic
+  wizardMode?: boolean; // Add wizardMode as an optional prop
 }
 
-const ElementEditor = ({ element, onElementUpdate, elements }: ElementEditorProps) => {
+const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false }: ElementEditorProps) => {
   if (!element) {
     return (
       <div className="p-4 text-center text-muted-foreground">
@@ -182,7 +183,11 @@ const ElementEditor = ({ element, onElementUpdate, elements }: ElementEditorProp
                 <div>
                   <Label htmlFor="buttonType">Button Type</Label>
                   <div className="grid grid-cols-2 gap-2 mt-1">
-                    {['submit', 'reset', 'next', 'back'].map(type => (
+                    {/* Show all button types in normal mode, or include next/back in wizard mode */}
+                    {(wizardMode 
+                      ? ['submit', 'reset', 'next', 'back'] 
+                      : ['submit', 'reset']
+                    ).map(type => (
                       <div key={type} className="flex items-center space-x-2">
                         <Input
                           type="radio"

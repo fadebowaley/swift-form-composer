@@ -18,7 +18,7 @@ import FormPreview from './FormPreview';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { generateElement, FormElementType, ElementType } from '@/types/form-builder';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Code, Eye, LayoutWizard } from 'lucide-react';
+import { Code, Eye, LayoutGrid } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { Switch } from '@/components/ui/switch';
@@ -154,7 +154,7 @@ const FormBuilder = () => {
               onCheckedChange={handleWizardModeToggle}
             />
             <Label htmlFor="wizard-mode" className="flex items-center gap-1 cursor-pointer">
-              <LayoutWizard size={16} />
+              <LayoutGrid size={16} />
               <span>Wizard Mode</span>
             </Label>
           </div>
