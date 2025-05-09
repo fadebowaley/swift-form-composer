@@ -6,7 +6,7 @@ import {
   Radio, 
   ListCheck, 
   Calendar, 
-  FileUpload, 
+  Upload, 
   Plus
 } from 'lucide-react';
 import { ElementType } from '@/types/form-builder';
@@ -31,7 +31,7 @@ export const FormFieldIcon = ({ type, size = 18 }: FormFieldIconProps) => {
     case 'datepicker':
       return <Calendar size={size} />;
     case 'fileupload':
-      return <FileUpload size={size} />;
+      return <Upload size={size} />;
     case 'button':
       return <Plus size={size} />;
     default:
