@@ -19,6 +19,7 @@ import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/componen
 import { generateElement, FormElementType, ElementType } from '@/types/form-builder';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Code, Eye } from 'lucide-react';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 
 const FormBuilder = () => {
   const [elements, setElements] = useState<FormElementType[]>([]);
@@ -91,11 +92,56 @@ const FormBuilder = () => {
     }
   };
 
+  const handleExportForm = (format: 'json' | 'html') => {
+    if (format === 'json') {
+      const dataStr = JSON.stringify(elements, null, 2);
+      const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+      
+      const exportFileName = 'form-structure.json';
+      
+      const linkElement = document.createElement('a');
+      linkElement.setAttribute('href', dataUri);
+      linkElement.setAttribute('download', exportFileName);
+      linkElement.click();
+      
+      toast.success('Form JSON exported successfully');
+    } else {
+      toast.info('HTML export functionality coming soon');
+    }
+  };
+
+  const handleDuplicateElement = () => {
+    if (editingElement) {
+      const duplicatedElement = {
+        ...editingElement,
+        id: generateElement(editingElement.type).id,
+        label: `${editingElement.label} (Copy)`,
+      };
+      setElements([...elements, duplicatedElement]);
+      setEditingElementId(duplicatedElement.id);
+      toast.success(`Duplicated ${editingElement.type} element`);
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <header className="border-b px-6 py-3 flex items-center justify-between">
         <h1 className="text-xl font-semibold">Form Builder</h1>
         <div className="flex items-center gap-2">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline">Export</Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleExportForm('json')}>
+                Export as JSON
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleExportForm('html')}>
+                Export as HTML
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
           <Button variant="outline" onClick={handleClearForm}>
             Clear
           </Button>
@@ -123,7 +169,18 @@ const FormBuilder = () => {
               <ResizablePanelGroup direction="vertical">
                 <ResizablePanel defaultSize={60} className="overflow-auto">
                   <div className="p-4">
-                    <h2 className="text-lg font-semibold mb-3">Form Structure</h2>
+                    <div className="flex justify-between items-center mb-3">
+                      <h2 className="text-lg font-semibold">Form Structure</h2>
+                      {editingElement && (
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={handleDuplicateElement}
+                        >
+                          Duplicate Element
+                        </Button>
+                      )}
+                    </div>
                     <FormElementsList 
                       elements={elements} 
                       onElementsChange={handleElementsChange} 
@@ -135,7 +192,11 @@ const FormBuilder = () => {
                 <ResizableHandle />
                 <ResizablePanel defaultSize={40}>
                   <div className="h-full bg-muted/30">
-                    <ElementEditor element={editingElement} onElementUpdate={handleElementUpdate} />
+                    <ElementEditor 
+                      element={editingElement} 
+                      onElementUpdate={handleElementUpdate}
+                      elements={elements}
+                    />
                   </div>
                 </ResizablePanel>
               </ResizablePanelGroup>

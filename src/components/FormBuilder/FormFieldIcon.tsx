@@ -7,7 +7,14 @@ import {
   ListCheck, 
   Calendar, 
   Upload, 
-  Plus
+  Plus,
+  Hash,
+  Mail,
+  Lock,
+  ToggleLeft,
+  Sliders,
+  Clock,
+  Eye
 } from 'lucide-react';
 import { ElementType } from '@/types/form-builder';
 
@@ -22,6 +29,12 @@ export const FormFieldIcon = ({ type, size = 18 }: FormFieldIconProps) => {
       return <FileText size={size} />;
     case 'textarea':
       return <FileText size={size} />;
+    case 'number':
+      return <Hash size={size} />;
+    case 'email':
+      return <Mail size={size} />;
+    case 'password':
+      return <Lock size={size} />;
     case 'checkbox':
       return <Square size={size} />;
     case 'radio':
@@ -30,8 +43,16 @@ export const FormFieldIcon = ({ type, size = 18 }: FormFieldIconProps) => {
       return <ListCheck size={size} />;
     case 'datepicker':
       return <Calendar size={size} />;
+    case 'timepicker':
+      return <Clock size={size} />;
     case 'fileupload':
       return <Upload size={size} />;
+    case 'toggle':
+      return <ToggleLeft size={size} />;
+    case 'slider':
+      return <Sliders size={size} />;
+    case 'hidden':
+      return <Eye size={size} />;
     case 'button':
       return <Plus size={size} />;
     default:

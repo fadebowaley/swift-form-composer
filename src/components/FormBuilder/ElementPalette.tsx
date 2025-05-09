@@ -1,10 +1,11 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
 import { useDraggable } from '@dnd-kit/core';
 import { Card } from '@/components/ui/card';
 import { FormFieldIcon } from './FormFieldIcon';
 import { ELEMENT_TYPES, ElementType } from '@/types/form-builder';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { ChevronRight, ChevronDown } from 'lucide-react';
 
 interface ElementPaletteItemProps {
   type: ElementType;
@@ -39,24 +40,61 @@ interface ElementPaletteProps {
 }
 
 const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
+  // Group elements by category
+  const categories = Object.entries(ELEMENT_TYPES).reduce((acc, [key, value]) => {
+    const category = value.category;
+    if (!acc[category]) {
+      acc[category] = [];
+    }
+    acc[category].push({ type: key as ElementType, label: value.label });
+    return acc;
+  }, {} as Record<string, { type: ElementType; label: string }[]>);
+
+  const [openCategories, setOpenCategories] = React.useState<Record<string, boolean>>({
+    Basic: true,
+    Selection: true,
+    Advanced: true,
+    Special: true,
+    Action: true,
+  });
+
+  const toggleCategory = (category: string) => {
+    setOpenCategories(prev => ({
+      ...prev,
+      [category]: !prev[category]
+    }));
+  };
+
+  // Order categories
+  const orderedCategories = ['Basic', 'Selection', 'Advanced', 'Special', 'Action'];
+  
   return (
-    <div className="space-y-2">
-      <div className="font-medium mb-2">Form Elements</div>
-      {Object.entries(ELEMENT_TYPES).map(([key, value]) => (
-        <ElementPaletteItem 
-          key={key} 
-          type={key as ElementType} 
-          label={value.label} 
-          onAddElement={onAddElement}
-        />
-      ))}
+    <div className="space-y-3">
+      <div className="font-medium">Form Elements</div>
       
-      <div className="font-medium mt-6 mb-2">Form Actions</div>
-      <ElementPaletteItem 
-        type="button" 
-        label="Button" 
-        onAddElement={onAddElement}
-      />
+      {orderedCategories.map(category => {
+        const elements = categories[category];
+        if (!elements?.length) return null;
+        
+        return (
+          <Collapsible key={category} open={openCategories[category]} onOpenChange={() => toggleCategory(category)}>
+            <CollapsibleTrigger className="flex items-center w-full justify-between text-sm font-medium p-1 hover:bg-muted/30 rounded">
+              <span>{category}</span>
+              {openCategories[category] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
+            </CollapsibleTrigger>
+            <CollapsibleContent className="space-y-2 mt-2">
+              {elements.map(element => (
+                <ElementPaletteItem 
+                  key={element.type} 
+                  type={element.type} 
+                  label={element.label} 
+                  onAddElement={onAddElement}
+                />
+              ))}
+            </CollapsibleContent>
+          </Collapsible>
+        );
+      })}
     </div>
   );
 };
