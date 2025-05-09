@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { 
   DndContext, 
   DragEndEvent, 
@@ -10,19 +10,13 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
 import ElementPalette from './ElementPalette';
 import FormElementsList from './FormElementsList';
 import ElementEditor from './ElementEditor';
-import FormPreview from './FormPreview';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { generateElement, FormElementType, ElementType } from '@/types/form-builder';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Code, Eye, LayoutGrid } from 'lucide-react';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { ThemeToggle } from '@/components/ThemeToggle';
-import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
+import FormBuilderHeader from './FormBuilderHeader';
+import FormPreviewPanel from './FormPreviewPanel';
 
 const FormBuilder = () => {
   const [elements, setElements] = useState<FormElementType[]>([]);
@@ -144,47 +138,13 @@ const FormBuilder = () => {
 
   return (
     <div className="h-screen flex flex-col">
-      <header className="border-b px-6 py-3 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">Form Builder</h1>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center space-x-2">
-            <Switch 
-              id="wizard-mode"
-              checked={wizardMode}
-              onCheckedChange={handleWizardModeToggle}
-            />
-            <Label htmlFor="wizard-mode" className="flex items-center gap-1 cursor-pointer">
-              <LayoutGrid size={16} />
-              <span>Wizard Mode</span>
-            </Label>
-          </div>
-          
-          <ThemeToggle />
-          
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">Export</Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleExportForm('json')}>
-                  Export as JSON
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleExportForm('html')}>
-                  Export as HTML
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-            
-            <Button variant="outline" onClick={handleClearForm}>
-              Clear
-            </Button>
-            <Button variant="blue" onClick={handleSaveForm}>
-              Save Form
-            </Button>
-          </div>
-        </div>
-      </header>
+      <FormBuilderHeader 
+        wizardMode={wizardMode} 
+        onWizardModeToggle={handleWizardModeToggle}
+        onSaveForm={handleSaveForm}
+        onClearForm={handleClearForm}
+        onExportForm={handleExportForm}
+      />
       
       <div className="flex-grow overflow-hidden">
         <DndContext
@@ -207,13 +167,12 @@ const FormBuilder = () => {
                     <div className="flex justify-between items-center mb-3">
                       <h2 className="text-lg font-semibold">Form Structure</h2>
                       {editingElement && (
-                        <Button 
-                          size="sm" 
-                          variant="outline"
+                        <button 
+                          className="px-3 py-1 text-sm bg-secondary rounded border border-border"
                           onClick={handleDuplicateElement}
                         >
                           Duplicate Element
-                        </Button>
+                        </button>
                       )}
                     </div>
                     <FormElementsList 
@@ -241,29 +200,12 @@ const FormBuilder = () => {
             <ResizableHandle />
             
             <ResizablePanel defaultSize={30} className="overflow-auto">
-              <div className="p-4">
-                <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-lg font-semibold">Preview</h2>
-                  <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'preview' | 'json')}>
-                    <TabsList>
-                      <TabsTrigger value="preview">
-                        <Eye size={16} className="mr-1" /> Preview
-                      </TabsTrigger>
-                      <TabsTrigger value="json">
-                        <Code size={16} className="mr-1" /> JSON
-                      </TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-                
-                {activeTab === 'preview' ? (
-                  <FormPreview elements={elements} onSave={handleSaveForm} />
-                ) : (
-                  <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto max-h-[calc(100vh-200px)]">
-                    {JSON.stringify(elements, null, 2)}
-                  </pre>
-                )}
-              </div>
+              <FormPreviewPanel 
+                elements={elements}
+                onSave={handleSaveForm}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+              />
             </ResizablePanel>
           </ResizablePanelGroup>
         </DndContext>
