@@ -21,7 +21,7 @@ import FormPreviewPanel from './FormPreviewPanel';
 const FormBuilder = () => {
   const [elements, setElements] = useState<FormElementType[]>([]);
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'preview' | 'json' | 'properties'>('properties');
+  const [activeTab, setActiveTab] = useState<'preview' | 'json' | 'properties'>('preview');
   const [wizardMode, setWizardMode] = useState<boolean>(false);
   
   const sensors = useSensors(
@@ -150,6 +150,14 @@ const FormBuilder = () => {
     }
   };
 
+  const handleCanvasClick = (event: React.MouseEvent) => {
+    // If the click is directly on the canvas (not on an element), clear element selection and show preview
+    if ((event.target as HTMLElement).classList.contains('form-structure-canvas')) {
+      setEditingElementId(null);
+      setActiveTab('preview');
+    }
+  };
+
   return (
     <div className="h-screen flex flex-col">
       <FormBuilderHeader 
@@ -175,7 +183,10 @@ const FormBuilder = () => {
             </ResizablePanel>
             
             <ResizablePanel defaultSize={50} className="overflow-hidden bg-slate-50 dark:bg-neutral-900">
-              <div className="p-4 h-full">
+              <div 
+                className="p-4 h-full form-structure-canvas"
+                onClick={handleCanvasClick}
+              >
                 <div className="mb-3">
                   <h2 className="text-lg font-semibold dark:text-white">Form Structure</h2>
                 </div>
@@ -195,24 +206,15 @@ const FormBuilder = () => {
             <ResizableHandle />
             
             <ResizablePanel defaultSize={30} className="overflow-auto">
-              {activeTab === 'properties' && editingElement ? (
-                <ElementEditor 
-                  element={editingElement} 
-                  onElementUpdate={handleElementUpdate}
-                  elements={elements}
-                  wizardMode={wizardMode}
-                />
-              ) : (
-                <FormPreviewPanel 
-                  elements={elements}
-                  onSave={handleSaveForm}
-                  activeTab={activeTab}
-                  onTabChange={setActiveTab}
-                  editingElement={editingElement}
-                  onElementUpdate={handleElementUpdate}
-                  wizardMode={wizardMode}
-                />
-              )}
+              <FormPreviewPanel 
+                elements={elements}
+                onSave={handleSaveForm}
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                editingElement={editingElement}
+                onElementUpdate={handleElementUpdate}
+                wizardMode={wizardMode}
+              />
             </ResizablePanel>
           </ResizablePanelGroup>
         </DndContext>

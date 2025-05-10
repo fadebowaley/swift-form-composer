@@ -5,6 +5,7 @@ import { Eye, Code, Settings } from 'lucide-react';
 import FormPreview from './FormPreview';
 import { FormElementType } from '@/types/form-builder';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import ElementEditor from './ElementEditor';
 
 interface FormPreviewPanelProps {
   elements: FormElementType[];
@@ -26,8 +27,8 @@ const FormPreviewPanel = ({
   wizardMode = false
 }: FormPreviewPanelProps) => {
   return (
-    <div className="p-4 h-full flex flex-col">
-      <div className="flex items-center justify-center mb-3">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center justify-center mb-3 sticky top-0 z-10 bg-background py-2">
         <TooltipProvider>
           <Tabs value={activeTab} onValueChange={(value) => onTabChange(value as 'preview' | 'json' | 'properties')}>
             <TabsList className="grid grid-cols-3 w-32">
@@ -69,25 +70,30 @@ const FormPreviewPanel = ({
       </div>
       
       <div className="flex-grow overflow-auto">
-        {activeTab === 'preview' && (
+        <TabsContent value="preview" className="h-full">
           <FormPreview elements={elements} onSave={onSave} />
-        )}
-        {activeTab === 'json' && (
+        </TabsContent>
+        
+        <TabsContent value="json" className="h-full">
           <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto max-h-[calc(100vh-200px)] dark:bg-neutral-800 dark:text-neutral-200">
             {JSON.stringify(elements, null, 2)}
           </pre>
-        )}
-        {activeTab === 'properties' && editingElement && (
-          <div className="p-4">
-            <h3 className="text-lg font-medium dark:text-white">Element Properties</h3>
-            {/* We'll use the ElementEditor component here but it will be controlled by the parent */}
-            <div className="text-sm text-muted-foreground dark:text-neutral-400">
-              {editingElement ? 
-                `Editing: ${editingElement.label || editingElement.type}` : 
-                'Select an element to edit its properties'}
+        </TabsContent>
+        
+        <TabsContent value="properties" className="h-full">
+          {editingElement ? (
+            <ElementEditor 
+              element={editingElement} 
+              onElementUpdate={onElementUpdate}
+              elements={elements}
+              wizardMode={wizardMode}
+            />
+          ) : (
+            <div className="p-4 text-center text-muted-foreground">
+              Select an element to edit its properties
             </div>
-          </div>
-        )}
+          )}
+        </TabsContent>
       </div>
     </div>
   );

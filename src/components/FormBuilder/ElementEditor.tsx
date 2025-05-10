@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,6 +9,8 @@ import { Switch } from '@/components/ui/switch';
 import { FormElementType } from '@/types/form-builder';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Button } from '@/components/ui/button';
+import { PlusCircle, X, Database } from 'lucide-react';
 
 interface ElementEditorProps {
   element: FormElementType | null;
@@ -18,6 +20,10 @@ interface ElementEditorProps {
 }
 
 const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false }: ElementEditorProps) => {
+  const [apiUrl, setApiUrl] = useState<string>(element?.properties?.apiUrl || '');
+  const [apiValueField, setApiValueField] = useState<string>(element?.properties?.apiValueField || 'value');
+  const [apiLabelField, setApiLabelField] = useState<string>(element?.properties?.apiLabelField || 'label');
+  
   if (!element) {
     return (
       <div className="p-4 text-center text-muted-foreground">
@@ -55,6 +61,37 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
           ...element.properties.validation,
           [key]: value,
         },
+      },
+    });
+  };
+
+  const addOption = () => {
+    const currentOptions = element.properties.options || [];
+    handleNestedPropertyChange('options', [...currentOptions, `Option ${currentOptions.length + 1}`]);
+  };
+
+  const removeOption = (index: number) => {
+    const currentOptions = [...(element.properties.options || [])];
+    currentOptions.splice(index, 1);
+    handleNestedPropertyChange('options', currentOptions);
+  };
+
+  const updateOption = (index: number, value: string) => {
+    const currentOptions = [...(element.properties.options || [])];
+    currentOptions[index] = value;
+    handleNestedPropertyChange('options', currentOptions);
+  };
+
+  const handleApiIntegration = () => {
+    // Save API settings to element properties
+    onElementUpdate({
+      ...element,
+      properties: {
+        ...element.properties,
+        apiUrl,
+        apiValueField,
+        apiLabelField,
+        useApiData: true
       },
     });
   };
@@ -154,18 +191,98 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
             </div>
             
             {(element.type === 'dropdown' || element.type === 'checkbox' || element.type === 'radio') && (
-              <div>
-                <Label htmlFor="options">Options (one per line)</Label>
-                <Textarea
-                  id="options"
-                  value={(element.properties.options || []).join('\n')}
-                  onChange={(e) => {
-                    const options = e.target.value.split('\n').filter(Boolean);
-                    handleNestedPropertyChange('options', options);
-                  }}
-                  placeholder="Option 1&#10;Option 2&#10;Option 3"
-                  rows={4}
-                />
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <Label>Options</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={addOption} 
+                    className="flex items-center gap-1"
+                  >
+                    <PlusCircle size={14} />
+                    Add Option
+                  </Button>
+                </div>
+                
+                <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                  {(element.properties.options || []).map((option, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <Input
+                        value={option}
+                        onChange={(e) => updateOption(index, e.target.value)}
+                        placeholder={`Option ${index + 1}`}
+                      />
+                      <Button 
+                        type="button" 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => removeOption(index)}
+                        className="h-8 w-8"
+                      >
+                        <X size={14} />
+                      </Button>
+                    </div>
+                  ))}
+                  {(element.properties.options || []).length === 0 && (
+                    <div className="text-sm text-muted-foreground text-center py-2">
+                      No options added yet. Click "Add Option" to create options.
+                    </div>
+                  )}
+                </div>
+                
+                {element.type === 'dropdown' && (
+                  <>
+                    <Separator className="my-3" />
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <Database size={16} />
+                        <h4 className="font-medium">API Data Integration</h4>
+                      </div>
+                      
+                      <div>
+                        <Label htmlFor="apiUrl">API URL</Label>
+                        <Input
+                          id="apiUrl"
+                          value={apiUrl}
+                          onChange={(e) => setApiUrl(e.target.value)}
+                          placeholder="https://api.example.com/data"
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">URL to fetch dropdown options</p>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <Label htmlFor="valueField">Value Field</Label>
+                          <Input
+                            id="valueField"
+                            value={apiValueField}
+                            onChange={(e) => setApiValueField(e.target.value)}
+                            placeholder="id"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="labelField">Label Field</Label>
+                          <Input
+                            id="labelField"
+                            value={apiLabelField}
+                            onChange={(e) => setApiLabelField(e.target.value)}
+                            placeholder="name"
+                          />
+                        </div>
+                      </div>
+                      
+                      <Button 
+                        type="button"
+                        onClick={handleApiIntegration}
+                        className="w-full"
+                      >
+                        Use API Data
+                      </Button>
+                    </div>
+                  </>
+                )}
               </div>
             )}
             
@@ -202,6 +319,19 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
                       </div>
                     ))}
                   </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="apiEndpoint">API Endpoint (Optional)</Label>
+                  <Input
+                    id="apiEndpoint"
+                    value={element.properties.apiEndpoint || ''}
+                    onChange={(e) => handleNestedPropertyChange('apiEndpoint', e.target.value)}
+                    placeholder="https://api.example.com/submit"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Where form data will be submitted when this button is clicked
+                  </p>
                 </div>
               </>
             )}
