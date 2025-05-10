@@ -111,3 +111,36 @@
   opacity: 0;
   transition: opacity 0.2s ease-in-out;
 }
+
+/* Grid layout for form elements */
+.col-span-1 {
+  grid-column: span 1 / span 1;
+}
+
+.col-span-2 {
+  grid-column: span 2 / span 2;
+}
+
+.col-span-3 {
+  grid-column: span 3 / span 3;
+}
+
+.col-span-4 {
+  grid-column: span 4 / span 4;
+}
+
+/* Hover effect for buttons */
+.hover-scale {
+  transition: transform 0.2s ease;
+}
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+/* Center content classes */
+.center-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

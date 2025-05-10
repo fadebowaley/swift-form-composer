@@ -16,18 +16,18 @@ export function ThemeToggle() {
             variant="ghost"
             size="icon"
             onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-            className="h-9 w-9 transition-all"
+            className="h-9 w-9 transition-all hover:scale-110"
           >
             {theme === "dark" ? (
-              <Moon className="h-5 w-5 transition-transform" />
+              <Moon className="h-[20px] w-[20px] transition-transform" />
             ) : (
-              <Sun className="h-5 w-5 transition-transform" />
+              <Sun className="h-[20px] w-[20px] transition-transform" />
             )}
             <span className="sr-only">Toggle theme</span>
           </Button>
         </TooltipTrigger>
         <TooltipContent>
-          <p>Switch to {theme === "dark" ? "light" : "dark"} mode</p>
+          <p>{theme === "dark" ? "Light" : "Dark"} Mode</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

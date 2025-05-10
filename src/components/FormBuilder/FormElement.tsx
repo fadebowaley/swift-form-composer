@@ -3,17 +3,28 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
-import { X, GripVertical } from 'lucide-react';
+import { X, GripVertical, Copy } from 'lucide-react';
 import { FormElementType } from '@/types/form-builder';
 
 interface FormElementProps {
   element: FormElementType;
   onRemove: (id: string) => void;
   onEdit: (id: string) => void;
+  onDuplicate: (id: string) => void;
   isEditing: boolean;
+  colSpan?: 1 | 2 | 3 | 4;
+  onColSpanChange?: (id: string, span: 1 | 2 | 3 | 4) => void;
 }
 
-const FormElement = ({ element, onRemove, onEdit, isEditing }: FormElementProps) => {
+const FormElement = ({ 
+  element, 
+  onRemove, 
+  onEdit, 
+  onDuplicate,
+  isEditing,
+  colSpan = 1,
+  onColSpanChange
+}: FormElementProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: element.id,
   });
@@ -32,12 +43,27 @@ const FormElement = ({ element, onRemove, onEdit, isEditing }: FormElementProps)
     e.stopPropagation();
     onRemove(element.id);
   };
+  
+  const handleDuplicate = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onDuplicate(element.id);
+  };
+
+  const getColSpanClass = () => {
+    switch (colSpan) {
+      case 1: return 'col-span-1';
+      case 2: return 'col-span-2';
+      case 3: return 'col-span-3';
+      case 4: return 'col-span-4';
+      default: return 'col-span-1';
+    }
+  };
 
   return (
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative border rounded-md p-4 mb-3 bg-white form-element-hover
+      className={`relative border rounded-md p-4 mb-3 bg-white form-element-hover ${getColSpanClass()}
         ${isDragging ? 'dragging' : ''}
         ${isEditing ? 'ring-2 ring-primary' : ''}
       `}
@@ -60,9 +86,17 @@ const FormElement = ({ element, onRemove, onEdit, isEditing }: FormElementProps)
             variant="ghost"
             size="icon"
             className="h-7 w-7"
+            onClick={handleDuplicate}
+          >
+            <Copy size={14} />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-7 w-7"
             onClick={handleRemove}
           >
-            <X size={16} />
+            <X size={14} />
           </Button>
         </div>
       </div>
@@ -72,6 +106,21 @@ const FormElement = ({ element, onRemove, onEdit, isEditing }: FormElementProps)
           <div className="text-sm text-muted-foreground">Preview not available</div>
         )}
       </div>
+
+      {onColSpanChange && (
+        <div className="absolute bottom-1 right-1 flex gap-1">
+          {[1, 2, 3, 4].map(span => (
+            <button
+              key={span}
+              onClick={(e) => {
+                e.stopPropagation();
+                onColSpanChange(element.id, span as 1 | 2 | 3 | 4);
+              }}
+              className={`w-4 h-4 rounded-full ${colSpan === span ? 'bg-primary' : 'bg-muted'}`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 };

@@ -21,7 +21,7 @@ import FormPreviewPanel from './FormPreviewPanel';
 const FormBuilder = () => {
   const [elements, setElements] = useState<FormElementType[]>([]);
   const [editingElementId, setEditingElementId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'preview' | 'json'>('preview');
+  const [activeTab, setActiveTab] = useState<'preview' | 'json' | 'properties'>('properties');
   const [wizardMode, setWizardMode] = useState<boolean>(false);
   
   const sensors = useSensors(
@@ -50,10 +50,15 @@ const FormBuilder = () => {
     // If dragging from palette to the form area
     if (active.data.current?.type && over) {
       const type = active.data.current.type as ElementType;
+      
+      // Skip button elements as requested
+      if (type === 'button') return;
+      
       const newElement = generateElement(type);
       
       setElements([...elements, newElement]);
       setEditingElementId(newElement.id);
+      setActiveTab('properties'); // Switch to properties tab when adding a new element
       
       toast.success(`Added ${type} element`);
     }
@@ -68,6 +73,9 @@ const FormBuilder = () => {
   };
 
   const handleAddElement = (type: ElementType) => {
+    // Skip button elements as requested
+    if (type === 'button') return;
+    
     const newElement = generateElement(type);
     
     // If adding a button and wizard mode is on, default to "next" type
@@ -78,6 +86,7 @@ const FormBuilder = () => {
     
     setElements([...elements, newElement]);
     setEditingElementId(newElement.id);
+    setActiveTab('properties'); // Switch to properties tab
     toast.success(`Added ${type} element`);
   };
 
@@ -123,16 +132,25 @@ const FormBuilder = () => {
     }
   };
 
-  const handleDuplicateElement = () => {
-    if (editingElement) {
+  const handleDuplicateElement = (elementId: string) => {
+    const elementToDuplicate = elements.find(el => el.id === elementId);
+    if (elementToDuplicate) {
       const duplicatedElement = {
-        ...editingElement,
-        id: generateElement(editingElement.type).id,
-        label: `${editingElement.label} (Copy)`,
+        ...elementToDuplicate,
+        id: generateElement(elementToDuplicate.type).id,
+        label: `${elementToDuplicate.label} (Copy)`,
       };
       setElements([...elements, duplicatedElement]);
       setEditingElementId(duplicatedElement.id);
-      toast.success(`Duplicated ${editingElement.type} element`);
+      setActiveTab('properties'); // Switch to properties when duplicating
+      toast.success(`Duplicated ${elementToDuplicate.type} element`);
+    }
+  };
+
+  const handleElementEdit = (id: string | null) => {
+    setEditingElementId(id);
+    if (id) {
+      setActiveTab('properties'); // Switch to properties tab when selecting an element
     }
   };
 
@@ -161,51 +179,44 @@ const FormBuilder = () => {
             </ResizablePanel>
             
             <ResizablePanel defaultSize={50} className="overflow-hidden">
-              <ResizablePanelGroup direction="vertical">
-                <ResizablePanel defaultSize={60} className="overflow-auto">
-                  <div className="p-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <h2 className="text-lg font-semibold">Form Structure</h2>
-                      {editingElement && (
-                        <button 
-                          className="px-3 py-1 text-sm bg-secondary rounded border border-border"
-                          onClick={handleDuplicateElement}
-                        >
-                          Duplicate Element
-                        </button>
-                      )}
-                    </div>
-                    <FormElementsList 
-                      elements={elements} 
-                      onElementsChange={handleElementsChange} 
-                      editingElementId={editingElementId}
-                      onEditElement={setEditingElementId}
-                    />
-                  </div>
-                </ResizablePanel>
-                <ResizableHandle />
-                <ResizablePanel defaultSize={40}>
-                  <div className="h-full bg-muted/30">
-                    <ElementEditor 
-                      element={editingElement} 
-                      onElementUpdate={handleElementUpdate}
-                      elements={elements}
-                      wizardMode={wizardMode}
-                    />
-                  </div>
-                </ResizablePanel>
-              </ResizablePanelGroup>
+              <div className="p-4 h-full">
+                <div className="mb-3">
+                  <h2 className="text-lg font-semibold">Form Structure</h2>
+                </div>
+                
+                <div className="overflow-auto h-[calc(100vh-120px)]">
+                  <FormElementsList 
+                    elements={elements} 
+                    onElementsChange={handleElementsChange} 
+                    editingElementId={editingElementId}
+                    onEditElement={handleElementEdit}
+                    onDuplicateElement={handleDuplicateElement}
+                  />
+                </div>
+              </div>
             </ResizablePanel>
             
             <ResizableHandle />
             
             <ResizablePanel defaultSize={30} className="overflow-auto">
-              <FormPreviewPanel 
-                elements={elements}
-                onSave={handleSaveForm}
-                activeTab={activeTab}
-                onTabChange={setActiveTab}
-              />
+              {activeTab === 'properties' && editingElement ? (
+                <ElementEditor 
+                  element={editingElement} 
+                  onElementUpdate={handleElementUpdate}
+                  elements={elements}
+                  wizardMode={wizardMode}
+                />
+              ) : (
+                <FormPreviewPanel 
+                  elements={elements}
+                  onSave={handleSaveForm}
+                  activeTab={activeTab}
+                  onTabChange={setActiveTab}
+                  editingElement={editingElement}
+                  onElementUpdate={handleElementUpdate}
+                  wizardMode={wizardMode}
+                />
+              )}
             </ResizablePanel>
           </ResizablePanelGroup>
         </DndContext>

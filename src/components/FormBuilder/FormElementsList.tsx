@@ -24,6 +24,7 @@ interface FormElementsListProps {
   onElementsChange: (elements: FormElementType[]) => void;
   editingElementId: string | null;
   onEditElement: (id: string | null) => void;
+  onDuplicateElement: (id: string) => void;
 }
 
 const FormElementsList = ({
@@ -31,8 +32,12 @@ const FormElementsList = ({
   onElementsChange,
   editingElementId,
   onEditElement,
+  onDuplicateElement
 }: FormElementsListProps) => {
   const [activeId, setActiveId] = React.useState<string | null>(null);
+  
+  // Track column spans for elements
+  const [columnSpans, setColumnSpans] = React.useState<Record<string, 1 | 2 | 3 | 4>>({});
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -65,9 +70,22 @@ const FormElementsList = ({
   const handleRemoveElement = (id: string) => {
     const newElements = elements.filter((element) => element.id !== id);
     onElementsChange(newElements);
+    
+    // Remove column span data for removed element
+    const newColumnSpans = { ...columnSpans };
+    delete newColumnSpans[id];
+    setColumnSpans(newColumnSpans);
+    
     if (editingElementId === id) {
       onEditElement(null);
     }
+  };
+  
+  const handleColSpanChange = (id: string, span: 1 | 2 | 3 | 4) => {
+    setColumnSpans(prev => ({
+      ...prev,
+      [id]: span
+    }));
   };
 
   return (
@@ -78,9 +96,9 @@ const FormElementsList = ({
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={elements.map((e) => e.id)} strategy={verticalListSortingStrategy}>
-        <div className="space-y-1">
+        <div className="grid grid-cols-4 gap-3">
           {elements.length === 0 && (
-            <div className="text-center p-8 border border-dashed rounded-md text-muted-foreground">
+            <div className="text-center p-8 border border-dashed rounded-md text-muted-foreground col-span-4">
               Drag elements here to build your form
             </div>
           )}
@@ -90,7 +108,10 @@ const FormElementsList = ({
               element={element}
               onRemove={handleRemoveElement}
               onEdit={onEditElement}
+              onDuplicate={onDuplicateElement}
               isEditing={element.id === editingElementId}
+              colSpan={columnSpans[element.id] || 1}
+              onColSpanChange={handleColSpanChange}
             />
           ))}
         </div>

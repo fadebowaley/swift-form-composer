@@ -20,6 +20,11 @@ const ElementPaletteItem = ({ type, label, onAddElement }: ElementPaletteItemPro
     data: { type },
   });
 
+  // Skip the button element type
+  if (type === 'button') {
+    return null;
+  }
+
   return (
     <div
       ref={setNodeRef}
@@ -28,7 +33,7 @@ const ElementPaletteItem = ({ type, label, onAddElement }: ElementPaletteItemPro
       className={`cursor-grab ${isDragging ? 'opacity-50' : ''}`}
       onClick={() => onAddElement(type)}
     >
-      <Card className="p-2 flex items-center space-x-2 hover:bg-muted/50 transition-colors">
+      <Card className="p-2 flex items-center space-x-2 hover:bg-muted/50 transition-colors bg-background">
         <FormFieldIcon type={type} />
         <span className="text-sm">{label}</span>
       </Card>
@@ -56,7 +61,7 @@ const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
     Selection: true,
     Advanced: true,
     Special: true,
-    Action: true,
+    Action: false, // Default to closed for action category
   });
 
   const toggleCategory = (category: string) => {
@@ -70,10 +75,10 @@ const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
   const orderedCategories = ['Basic', 'Selection', 'Advanced', 'Special', 'Action'];
   
   return (
-    <div className="space-y-3">
-      <div className="font-medium">Form Elements</div>
+    <div className="space-y-3 border rounded-md p-4">
+      <div className="font-medium text-center border-b pb-2">Form Elements</div>
       
-      <ScrollArea className="h-[calc(100vh-120px)]">
+      <ScrollArea className="h-[calc(100vh-160px)]">
         <div className="pr-3 space-y-3">
           {orderedCategories.map(category => {
             const elements = categories[category];
@@ -86,14 +91,16 @@ const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
                   {openCategories[category] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-2 mt-2">
-                  {elements.map(element => (
-                    <ElementPaletteItem 
-                      key={element.type} 
-                      type={element.type} 
-                      label={element.label} 
-                      onAddElement={onAddElement}
-                    />
-                  ))}
+                  {elements
+                    .filter(element => element.type !== 'button') // Skip button elements
+                    .map(element => (
+                      <ElementPaletteItem 
+                        key={element.type} 
+                        type={element.type} 
+                        label={element.label} 
+                        onAddElement={onAddElement}
+                      />
+                    ))}
                 </CollapsibleContent>
               </Collapsible>
             );

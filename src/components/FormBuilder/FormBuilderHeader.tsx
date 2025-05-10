@@ -1,11 +1,10 @@
 
 import React from 'react';
-import { Button } from '@/components/ui/button';
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/ThemeToggle';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Button } from '@/components/ui/button';
+import { Home, LayoutGrid, Trash2, Upload } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
-import { LayoutGrid } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface FormBuilderHeaderProps {
@@ -24,46 +23,67 @@ const FormBuilderHeader = ({
   onExportForm
 }: FormBuilderHeaderProps) => {
   return (
-    <header className="border-b px-6 py-3 flex items-center justify-between">
-      <h1 className="text-xl font-semibold">Form Builder</h1>
-      <div className="flex items-center gap-4">
-        <div className="flex items-center space-x-2">
-          <Switch 
-            id="wizard-mode"
-            checked={wizardMode}
-            onCheckedChange={onWizardModeToggle}
-          />
-          <Label htmlFor="wizard-mode" className="flex items-center gap-1 cursor-pointer">
-            <LayoutGrid size={16} />
-            <span>Wizard Mode</span>
-          </Label>
-        </div>
-        
-        <ThemeToggle />
-        
-        <div className="flex items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">Export</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={() => onExportForm('json')}>
-                Export as JSON
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => onExportForm('html')}>
-                Export as HTML
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+    <header className="border-b px-6 py-3 flex items-center justify-center">
+      <TooltipProvider>
+        <div className="flex items-center gap-4">
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div className="flex items-center">
+                <Switch 
+                  id="wizard-mode"
+                  checked={wizardMode}
+                  onCheckedChange={onWizardModeToggle}
+                  className="mr-1"
+                />
+                <LayoutGrid size={18} className="text-muted-foreground" />
+              </div>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Wizard Mode</p>
+            </TooltipContent>
+          </Tooltip>
           
-          <Button variant="outline" onClick={onClearForm}>
-            Clear
-          </Button>
-          <Button variant="blue" onClick={onSaveForm}>
-            Save Form
-          </Button>
+          <ThemeToggle />
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={onSaveForm} className="hover:scale-110 transition-transform">
+                <Home size={20} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Dashboard</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button variant="ghost" size="icon" onClick={onClearForm} className="hover:scale-110 transition-transform">
+                <Trash2 size={20} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Clear Form</p>
+            </TooltipContent>
+          </Tooltip>
+          
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={() => onExportForm('json')}
+                className="hover:scale-110 transition-transform"
+              >
+                <Upload size={20} />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+              <p>Export Form</p>
+            </TooltipContent>
+          </Tooltip>
         </div>
-      </div>
+      </TooltipProvider>
     </header>
   );
 };
