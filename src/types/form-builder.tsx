@@ -1,4 +1,3 @@
-
 import { ReactNode } from "react";
 
 export type ElementType = 
@@ -16,7 +15,8 @@ export type ElementType =
   'toggle' |
   'slider' |
   'hidden' |
-  'button';
+  'button' |
+  'apidropdown';
 
 export type ButtonType = 'submit' | 'reset' | 'next' | 'back';
 
@@ -51,6 +51,7 @@ export interface FormElementType {
     max?: number;
     step?: number;
     hidden?: boolean;
+    apiEndpoint?: string;
     [key: string]: any;
   };
   renderPreview?: () => ReactNode;
@@ -78,6 +79,7 @@ export const ELEMENT_TYPES: Record<ElementType, { label: string; category: strin
   slider: { label: 'Slider', category: 'Advanced' },
   hidden: { label: 'Hidden Field', category: 'Special' },
   button: { label: 'Button', category: 'Action' },
+  apidropdown: { label: 'API Dropdown', category: 'Special' },
 };
 
 export const generateElement = (type: ElementType): FormElementType => {
@@ -287,6 +289,20 @@ export const generateElement = (type: ElementType): FormElementType => {
         renderPreview: () => (
           <div className="bg-primary text-primary-foreground py-1 px-4 rounded text-center w-24">
             Submit
+          </div>
+        ),
+      };
+      
+    case 'apidropdown':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          apiEndpoint: '',
+        },
+        renderPreview: () => (
+          <div className="w-full h-8 bg-muted/50 rounded border border-input flex items-center px-2">
+            <div className="text-sm text-muted-foreground">API Dropdown</div>
           </div>
         ),
       };
