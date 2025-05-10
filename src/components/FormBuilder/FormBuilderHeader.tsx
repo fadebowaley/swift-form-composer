@@ -5,7 +5,6 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Button } from '@/components/ui/button';
 import { Home, LayoutGrid, Trash2, Upload, Eye, Settings, Code } from 'lucide-react';
 import { Switch } from '@/components/ui/switch';
-import { Separator } from '@/components/ui/separator';
 
 interface FormBuilderHeaderProps {
   wizardMode: boolean;
@@ -27,9 +26,10 @@ const FormBuilderHeader = ({
   onTabChange
 }: FormBuilderHeaderProps) => {
   return (
-    <header className="border-b px-6 py-3 flex items-center justify-between">
+    <header className="border-b px-6 py-3 flex items-center justify-center">
       <TooltipProvider>
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-3">
+          {/* Wizard mode toggle */}
           <Tooltip>
             <TooltipTrigger asChild>
               <div className="flex items-center">
@@ -47,13 +47,10 @@ const FormBuilderHeader = ({
             </TooltipContent>
           </Tooltip>
           
+          {/* Theme toggle */}
           <ThemeToggle />
-        </div>
-      </TooltipProvider>
-      
-      {/* Center tabs */}
-      <div className="flex items-center space-x-2">
-        <TooltipProvider>
+          
+          {/* Tab controls */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button 
@@ -101,11 +98,8 @@ const FormBuilderHeader = ({
               <p>JSON</p>
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
-      </div>
-      
-      <div className="flex items-center gap-2">
-        <TooltipProvider>
+          
+          {/* Action buttons */}
           <Tooltip>
             <TooltipTrigger asChild>
               <Button variant="ghost" size="icon" onClick={onSaveForm} className="hover:scale-110 transition-transform">
@@ -143,8 +137,8 @@ const FormBuilderHeader = ({
               <p>Export Form</p>
             </TooltipContent>
           </Tooltip>
-        </TooltipProvider>
-      </div>
+        </div>
+      </TooltipProvider>
     </header>
   );
 };

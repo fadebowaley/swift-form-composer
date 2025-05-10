@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { FormElementType } from '@/types/form-builder';
 import { Input } from '@/components/ui/input';
@@ -109,6 +108,11 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
     
     // Don't render if this element should be hidden based on conditional logic
     if (!shouldShowElement(element)) return null;
+
+    // Don't render next/back buttons here - they'll be rendered at the bottom
+    if (type === 'button' && (buttonType === 'next' || buttonType === 'back')) {
+      return null;
+    }
 
     switch (type) {
       case 'text':
@@ -251,13 +255,14 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
         );
       
       case 'dropdown':
+      case 'apidropdown':
         return (
           <div key={id} className="space-y-2">
             <Label htmlFor={id}>
               {label} {properties.validation?.required && <span className="text-destructive">*</span>}
             </Label>
             <Select defaultValue={defaultValue} onValueChange={(value) => handleInputChange(id, value)}>
-              <SelectTrigger id={id}>
+              <SelectTrigger id={id} className="select-trigger">
                 <SelectValue placeholder={placeholder || 'Select option'} />
               </SelectTrigger>
               <SelectContent>
@@ -284,7 +289,7 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
                   id={id}
                   variant={"outline"}
                   className={cn(
-                    "w-full justify-start text-left font-normal",
+                    "w-full justify-start text-left font-normal calendar-button",
                     !date[id] && "text-muted-foreground"
                   )}
                 >
@@ -436,29 +441,6 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
               </Button>
             </div>
           );
-        } else if (buttonType === 'next') {
-          return (
-            <div key={id} className="space-y-2">
-              <Button 
-                type="button" 
-                onClick={moveToNextStep}
-              >
-                {buttonText || 'Next'}
-              </Button>
-            </div>
-          );
-        } else if (buttonType === 'back') {
-          return (
-            <div key={id} className="space-y-2">
-              <Button 
-                type="button"
-                variant="outline"
-                onClick={moveToPreviousStep}
-              >
-                {buttonText || 'Back'}
-              </Button>
-            </div>
-          );
         } else {
           return (
             <div key={id} className="space-y-2">
@@ -478,31 +460,16 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
   const hasSubmitButton = currentElements.some(e => e.type === 'button' && e.properties.buttonType === 'submit');
   const isLastStep = currentStep === formSteps.length - 1;
 
+  // Find all next/back buttons in the current step (to prevent duplication)
+  const nextButtonInStep = currentElements.find(e => e.type === 'button' && e.properties.buttonType === 'next');
+  const backButtonInStep = currentElements.find(e => e.type === 'button' && e.properties.buttonType === 'back');
+
   return (
-    <div className="p-4 border rounded-lg bg-white">
+    <div className="p-4 border rounded-lg bg-white dark:bg-neutral-900 form-preview">
       {formSteps.length > 1 && (
         <div className="mb-4 flex justify-between items-center">
           <div className="text-sm text-muted-foreground">
             Step {currentStep + 1} of {formSteps.length}
-          </div>
-          <div className="flex space-x-2">
-            {currentStep > 0 && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={moveToPreviousStep}
-              >
-                Previous
-              </Button>
-            )}
-            {currentStep < formSteps.length - 1 && (
-              <Button 
-                size="sm" 
-                onClick={moveToNextStep}
-              >
-                Next
-              </Button>
-            )}
           </div>
         </div>
       )}
@@ -511,13 +478,40 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
         <div className="space-y-4">
           {currentElements.map(renderField)}
           
-          {isLastStep && !hasSubmitButton && currentElements.length > 0 && (
-            <Button type="submit" className="mt-4">Submit Form</Button>
-          )}
-
           {currentElements.length === 0 && (
             <div className="text-center p-8 text-muted-foreground">
               Your form preview will appear here
+            </div>
+          )}
+          
+          {/* Wizard navigation buttons - always shown at bottom */}
+          {formSteps.length > 1 && (
+            <div className="wizard-navigation">
+              <div>
+                {currentStep > 0 && !backButtonInStep && (
+                  <Button 
+                    variant="outline" 
+                    onClick={moveToPreviousStep}
+                    type="button"
+                  >
+                    Previous
+                  </Button>
+                )}
+              </div>
+              <div>
+                {!isLastStep && !nextButtonInStep && (
+                  <Button 
+                    onClick={moveToNextStep}
+                    type="button"
+                  >
+                    Next
+                  </Button>
+                )}
+                
+                {isLastStep && !hasSubmitButton && currentElements.length > 0 && (
+                  <Button type="submit">Submit Form</Button>
+                )}
+              </div>
             </div>
           )}
         </div>

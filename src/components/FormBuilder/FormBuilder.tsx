@@ -37,8 +37,6 @@ const FormBuilder = () => {
   useEffect(() => {
     if (editingElementId) {
       setActiveTab('properties');
-    } else if (activeTab === 'properties') {
-      setActiveTab('preview');
     }
   }, [editingElementId]);
 
@@ -151,9 +149,13 @@ const FormBuilder = () => {
   };
 
   const handleCanvasClick = (event: React.MouseEvent) => {
-    // If the click is directly on the canvas (not on an element), clear element selection
-    if ((event.target as HTMLElement).classList.contains('form-structure-canvas')) {
+    // If the click is directly on the canvas (not an element), clear element selection
+    if ((event.target as HTMLElement).classList.contains('canvas-grid') ||
+        (event.target as HTMLElement).classList.contains('form-structure-canvas')) {
       setEditingElementId(null);
+      if (activeTab === 'properties') {
+        setActiveTab('preview');
+      }
     }
   };
 
@@ -162,6 +164,7 @@ const FormBuilder = () => {
     // If switching to properties tab but no element is selected, maintain the current tab
     if (tab === 'properties' && !editingElementId) {
       setActiveTab('preview');
+      toast.info('Select an element to edit its properties');
     }
   };
 
@@ -201,13 +204,15 @@ const FormBuilder = () => {
                 </div>
                 
                 <div className="overflow-auto h-[calc(100vh-120px)]">
-                  <FormElementsList 
-                    elements={elements} 
-                    onElementsChange={handleElementsChange} 
-                    editingElementId={editingElementId}
-                    onEditElement={handleElementEdit}
-                    onDuplicateElement={handleDuplicateElement}
-                  />
+                  <div className="canvas-grid rounded-md">
+                    <FormElementsList 
+                      elements={elements} 
+                      onElementsChange={handleElementsChange} 
+                      editingElementId={editingElementId}
+                      onEditElement={handleElementEdit}
+                      onDuplicateElement={handleDuplicateElement}
+                    />
+                  </div>
                 </div>
               </div>
             </ResizablePanel>
