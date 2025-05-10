@@ -65,35 +65,35 @@ const FormPreviewPanel = ({
                 </TooltipContent>
               </Tooltip>
             </TabsList>
+            
+            <div className="flex-grow overflow-auto">
+              <TabsContent value="preview" className="h-full">
+                <FormPreview elements={elements} onSave={onSave} />
+              </TabsContent>
+              
+              <TabsContent value="json" className="h-full">
+                <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto max-h-[calc(100vh-200px)] dark:bg-neutral-800 dark:text-neutral-200">
+                  {JSON.stringify(elements, null, 2)}
+                </pre>
+              </TabsContent>
+              
+              <TabsContent value="properties" className="h-full">
+                {editingElement ? (
+                  <ElementEditor 
+                    element={editingElement} 
+                    onElementUpdate={onElementUpdate}
+                    elements={elements}
+                    wizardMode={wizardMode}
+                  />
+                ) : (
+                  <div className="p-4 text-center text-muted-foreground">
+                    Select an element to edit its properties
+                  </div>
+                )}
+              </TabsContent>
+            </div>
           </Tabs>
         </TooltipProvider>
-      </div>
-      
-      <div className="flex-grow overflow-auto">
-        <TabsContent value="preview" className="h-full">
-          <FormPreview elements={elements} onSave={onSave} />
-        </TabsContent>
-        
-        <TabsContent value="json" className="h-full">
-          <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto max-h-[calc(100vh-200px)] dark:bg-neutral-800 dark:text-neutral-200">
-            {JSON.stringify(elements, null, 2)}
-          </pre>
-        </TabsContent>
-        
-        <TabsContent value="properties" className="h-full">
-          {editingElement ? (
-            <ElementEditor 
-              element={editingElement} 
-              onElementUpdate={onElementUpdate}
-              elements={elements}
-              wizardMode={wizardMode}
-            />
-          ) : (
-            <div className="p-4 text-center text-muted-foreground">
-              Select an element to edit its properties
-            </div>
-          )}
-        </TabsContent>
       </div>
     </div>
   );
