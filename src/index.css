@@ -95,6 +95,7 @@
   }
 }
 
+/* Drag and drop styles */
 .drag-handle {
   cursor: grab;
 }
@@ -143,4 +144,39 @@
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+/* Canvas grid background */
+.canvas-grid {
+  background-size: 20px 20px;
+  background-image:
+    linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+}
+
+.dark .canvas-grid {
+  background-image:
+    linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+}
+
+/* Form element styles for dark mode */
+.dark .form-element-hover {
+  background-color: rgb(38, 38, 38);
+  color: rgb(229, 229, 229);
+}
+
+.dark .form-element-hover:hover {
+  background-color: rgb(45, 45, 45);
+}
+
+/* Compact form elements */
+.form-element-hover {
+  padding: 0.75rem;
+  transition: all 0.2s ease;
+}
+
+.form-element-hover .element-actions button {
+  height: 1.5rem;
+  width: 1.5rem;
 }

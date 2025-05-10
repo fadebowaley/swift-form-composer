@@ -88,6 +88,20 @@ const FormElementsList = ({
     }));
   };
 
+  const increaseColumnSpan = (id: string) => {
+    const currentSpan = columnSpans[id] || 1;
+    if (currentSpan < 4) {
+      handleColSpanChange(id, (currentSpan + 1) as 1 | 2 | 3 | 4);
+    }
+  };
+
+  const decreaseColumnSpan = (id: string) => {
+    const currentSpan = columnSpans[id] || 1;
+    if (currentSpan > 1) {
+      handleColSpanChange(id, (currentSpan - 1) as 1 | 2 | 3 | 4);
+    }
+  };
+
   return (
     <DndContext
       sensors={sensors}
@@ -96,9 +110,9 @@ const FormElementsList = ({
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={elements.map((e) => e.id)} strategy={verticalListSortingStrategy}>
-        <div className="grid grid-cols-4 gap-3">
+        <div className="grid grid-cols-4 gap-2 canvas-grid">
           {elements.length === 0 && (
-            <div className="text-center p-8 border border-dashed rounded-md text-muted-foreground col-span-4">
+            <div className="text-center p-8 border border-dashed rounded-md text-muted-foreground col-span-4 dark:border-neutral-700 dark:text-neutral-400">
               Drag elements here to build your form
             </div>
           )}
@@ -112,6 +126,8 @@ const FormElementsList = ({
               isEditing={element.id === editingElementId}
               colSpan={columnSpans[element.id] || 1}
               onColSpanChange={handleColSpanChange}
+              onIncreaseSpan={() => increaseColumnSpan(element.id)}
+              onDecreaseSpan={() => decreaseColumnSpan(element.id)}
             />
           ))}
         </div>

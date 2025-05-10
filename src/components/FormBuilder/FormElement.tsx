@@ -3,7 +3,7 @@ import React from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { Button } from '@/components/ui/button';
-import { X, GripVertical, Copy } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Copy, GripVertical, X } from 'lucide-react';
 import { FormElementType } from '@/types/form-builder';
 
 interface FormElementProps {
@@ -14,6 +14,8 @@ interface FormElementProps {
   isEditing: boolean;
   colSpan?: 1 | 2 | 3 | 4;
   onColSpanChange?: (id: string, span: 1 | 2 | 3 | 4) => void;
+  onIncreaseSpan?: () => void;
+  onDecreaseSpan?: () => void;
 }
 
 const FormElement = ({ 
@@ -23,7 +25,9 @@ const FormElement = ({
   onDuplicate,
   isEditing,
   colSpan = 1,
-  onColSpanChange
+  onColSpanChange,
+  onIncreaseSpan,
+  onDecreaseSpan
 }: FormElementProps) => {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: element.id,
@@ -63,9 +67,10 @@ const FormElement = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative border rounded-md p-4 mb-3 bg-white form-element-hover ${getColSpanClass()}
+      className={`relative border rounded-md p-3 bg-white form-element-hover ${getColSpanClass()}
         ${isDragging ? 'dragging' : ''}
         ${isEditing ? 'ring-2 ring-primary' : ''}
+        dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200
       `}
       onClick={() => onEdit(element.id)}
     >
@@ -74,53 +79,72 @@ const FormElement = ({
           <div 
             {...attributes}
             {...listeners}
-            className="drag-handle p-1 rounded hover:bg-gray-100 cursor-grab"
+            className="drag-handle p-1 rounded hover:bg-gray-100 dark:hover:bg-neutral-700 cursor-grab"
           >
-            <GripVertical size={16} />
+            <GripVertical size={14} className="text-gray-500 dark:text-neutral-400" />
           </div>
-          <div className="font-medium text-sm">{element.label || 'Untitled element'}</div>
+          <div className="font-medium text-xs sm:text-sm">{element.label || 'Untitled element'}</div>
         </div>
         
         <div className="element-actions flex space-x-1">
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-6 w-6"
             onClick={handleDuplicate}
+            title="Duplicate"
           >
-            <Copy size={14} />
+            <Copy size={12} className="text-gray-500 dark:text-neutral-400" />
           </Button>
           <Button
             variant="ghost"
             size="icon"
-            className="h-7 w-7"
+            className="h-6 w-6"
             onClick={handleRemove}
+            title="Remove"
           >
-            <X size={14} />
+            <X size={12} className="text-gray-500 dark:text-neutral-400" />
           </Button>
         </div>
       </div>
       
-      <div className="mt-2">
+      <div className="mt-2 text-xs">
         {element.renderPreview ? element.renderPreview() : (
-          <div className="text-sm text-muted-foreground">Preview not available</div>
+          <div className="text-xs text-muted-foreground dark:text-neutral-400">Preview not available</div>
         )}
       </div>
 
-      {onColSpanChange && (
-        <div className="absolute bottom-1 right-1 flex gap-1">
-          {[1, 2, 3, 4].map(span => (
-            <button
-              key={span}
-              onClick={(e) => {
-                e.stopPropagation();
-                onColSpanChange(element.id, span as 1 | 2 | 3 | 4);
-              }}
-              className={`w-4 h-4 rounded-full ${colSpan === span ? 'bg-primary' : 'bg-muted'}`}
-            />
-          ))}
-        </div>
-      )}
+      <div className="absolute bottom-1 right-1 flex items-center gap-1">
+        {onDecreaseSpan && colSpan > 1 && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-5 w-5 p-0 bg-muted hover:bg-muted/80 dark:bg-neutral-700 dark:hover:bg-neutral-600" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onDecreaseSpan();
+            }}
+            title="Decrease width"
+          >
+            <ArrowLeft size={10} className="dark:text-neutral-200" />
+          </Button>
+        )}
+        
+        {onIncreaseSpan && colSpan < 4 && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="h-5 w-5 p-0 bg-muted hover:bg-muted/80 dark:bg-neutral-700 dark:hover:bg-neutral-600" 
+            onClick={(e) => {
+              e.stopPropagation();
+              onIncreaseSpan();
+            }}
+            title="Increase width"
+          >
+            <ArrowRight size={10} className="dark:text-neutral-200" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 };

@@ -34,7 +34,7 @@ const FormPreviewPanel = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <TabsTrigger value="properties" className="p-2">
-                    <Settings size={18} />
+                    <Settings size={18} className="dark:text-white" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -45,7 +45,7 @@ const FormPreviewPanel = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <TabsTrigger value="preview" className="p-2">
-                    <Eye size={18} />
+                    <Eye size={18} className="dark:text-white" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -56,7 +56,7 @@ const FormPreviewPanel = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <TabsTrigger value="json" className="p-2">
-                    <Code size={18} />
+                    <Code size={18} className="dark:text-white" />
                   </TabsTrigger>
                 </TooltipTrigger>
                 <TooltipContent>
@@ -73,15 +73,15 @@ const FormPreviewPanel = ({
           <FormPreview elements={elements} onSave={onSave} />
         )}
         {activeTab === 'json' && (
-          <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto max-h-[calc(100vh-200px)]">
+          <pre className="bg-muted p-4 rounded-lg text-sm overflow-auto max-h-[calc(100vh-200px)] dark:bg-neutral-800 dark:text-neutral-200">
             {JSON.stringify(elements, null, 2)}
           </pre>
         )}
         {activeTab === 'properties' && editingElement && (
           <div className="p-4">
-            <h3 className="text-lg font-medium mb-3">Element Properties</h3>
+            <h3 className="text-lg font-medium dark:text-white">Element Properties</h3>
             {/* We'll use the ElementEditor component here but it will be controlled by the parent */}
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm text-muted-foreground dark:text-neutral-400">
               {editingElement ? 
                 `Editing: ${editingElement.label || editingElement.type}` : 
                 'Select an element to edit its properties'}

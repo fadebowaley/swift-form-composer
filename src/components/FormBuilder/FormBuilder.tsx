@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { 
   DndContext, 
@@ -50,8 +51,6 @@ const FormBuilder = () => {
     if (active.data.current?.type && over) {
       const type = active.data.current.type as ElementType;
       
-      // We don't want to skip the button element type anymore since we're
-      // removing it from the palette instead
       const newElement = generateElement(type);
       
       setElements([...elements, newElement]);
@@ -71,9 +70,6 @@ const FormBuilder = () => {
   };
 
   const handleAddElement = (type: ElementType) => {
-    // We don't need to skip button elements here anymore since we're
-    // removing them from the palette instead
-    
     const newElement = generateElement(type);
     
     // If adding a button and wizard mode is on, default to "next" type
@@ -149,6 +145,8 @@ const FormBuilder = () => {
     setEditingElementId(id);
     if (id) {
       setActiveTab('properties'); // Switch to properties tab when selecting an element
+    } else {
+      setActiveTab('preview'); // Auto switch to preview when no element is selected
     }
   };
 
@@ -170,16 +168,16 @@ const FormBuilder = () => {
           onDragEnd={handleDragEnd}
         >
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="border-r">
+            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="border-r dark:border-neutral-800">
               <div className="p-4">
                 <ElementPalette onAddElement={handleAddElement} />
               </div>
             </ResizablePanel>
             
-            <ResizablePanel defaultSize={50} className="overflow-hidden">
+            <ResizablePanel defaultSize={50} className="overflow-hidden bg-slate-50 dark:bg-neutral-900">
               <div className="p-4 h-full">
                 <div className="mb-3">
-                  <h2 className="text-lg font-semibold">Form Structure</h2>
+                  <h2 className="text-lg font-semibold dark:text-white">Form Structure</h2>
                 </div>
                 
                 <div className="overflow-auto h-[calc(100vh-120px)]">
