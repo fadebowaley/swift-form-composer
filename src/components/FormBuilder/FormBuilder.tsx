@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { 
   DndContext, 
@@ -51,9 +50,8 @@ const FormBuilder = () => {
     if (active.data.current?.type && over) {
       const type = active.data.current.type as ElementType;
       
-      // Skip button elements as requested
-      if (type === 'button') return;
-      
+      // We don't want to skip the button element type anymore since we're
+      // removing it from the palette instead
       const newElement = generateElement(type);
       
       setElements([...elements, newElement]);
@@ -73,8 +71,8 @@ const FormBuilder = () => {
   };
 
   const handleAddElement = (type: ElementType) => {
-    // Skip button elements as requested
-    if (type === 'button') return;
+    // We don't need to skip button elements here anymore since we're
+    // removing them from the palette instead
     
     const newElement = generateElement(type);
     

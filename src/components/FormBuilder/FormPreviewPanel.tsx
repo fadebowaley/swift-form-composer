@@ -13,7 +13,6 @@ interface FormPreviewPanelProps {
   onTabChange: (value: 'preview' | 'json' | 'properties') => void;
   editingElement: FormElementType | null;
   onElementUpdate: (element: FormElementType) => void;
-  elements: FormElementType[];
   wizardMode?: boolean;
 }
 
