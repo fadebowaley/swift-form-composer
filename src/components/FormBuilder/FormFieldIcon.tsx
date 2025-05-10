@@ -16,7 +16,8 @@ import {
   Clock,
   Eye,
   ArrowRight,
-  ArrowLeft
+  ArrowLeft,
+  Database
 } from 'lucide-react';
 import { ElementType } from '@/types/form-builder';
 
@@ -59,6 +60,8 @@ export const FormFieldIcon = ({ type, size = 18, buttonType }: FormFieldIconProp
       return <Radio size={size} />;
     case 'dropdown':
       return <ListCheck size={size} />;
+    case 'apidropdown':
+      return <Database size={size} />;
     case 'datepicker':
       return <Calendar size={size} />;
     case 'timepicker':

@@ -1,113 +1,93 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useDraggable } from '@dnd-kit/core';
-import { Card } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ElementType } from '@/types/form-builder';
 import { FormFieldIcon } from './FormFieldIcon';
-import { ELEMENT_TYPES, ElementType } from '@/types/form-builder';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronRight, ChevronDown } from 'lucide-react';
-import { ScrollArea } from "@/components/ui/scroll-area";
-
-interface ElementPaletteItemProps {
-  type: ElementType;
-  label: string;
-  onAddElement: (type: ElementType) => void;
-}
-
-const ElementPaletteItem = ({ type, label, onAddElement }: ElementPaletteItemProps) => {
-  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: `palette-${type}`,
-    data: { type },
-  });
-
-  // Skip the button element type
-  if (type === 'button') {
-    return null;
-  }
-
-  return (
-    <div
-      ref={setNodeRef}
-      {...attributes}
-      {...listeners}
-      className={`cursor-grab ${isDragging ? 'opacity-50' : ''}`}
-      onClick={() => onAddElement(type)}
-    >
-      <Card className="p-2 flex items-center space-x-2 hover:bg-muted/50 transition-colors bg-background">
-        <FormFieldIcon type={type} />
-        <span className="text-sm">{label}</span>
-      </Card>
-    </div>
-  );
-};
 
 interface ElementPaletteProps {
   onAddElement: (type: ElementType) => void;
 }
 
-const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
-  // Group elements by category
-  const categories = Object.entries(ELEMENT_TYPES).reduce((acc, [key, value]) => {
-    const category = value.category;
-    if (!acc[category]) {
-      acc[category] = [];
-    }
-    acc[category].push({ type: key as ElementType, label: value.label });
-    return acc;
-  }, {} as Record<string, { type: ElementType; label: string }[]>);
+interface DraggableElementProps {
+  type: ElementType;
+  label: string;
+  onAddElement: (type: ElementType) => void;
+}
 
-  const [openCategories, setOpenCategories] = React.useState<Record<string, boolean>>({
-    Basic: true,
-    Selection: true,
-    Advanced: true,
-    Special: true,
-    Action: false, // Default to closed for action category
+const DraggableElement = ({ type, label, onAddElement }: DraggableElementProps) => {
+  const { attributes, listeners, setNodeRef, transform } = useDraggable({
+    id: `palette-${type}`,
+    data: {
+      type,
+    },
   });
 
-  const toggleCategory = (category: string) => {
-    setOpenCategories(prev => ({
-      ...prev,
-      [category]: !prev[category]
-    }));
-  };
+  const style = transform
+    ? {
+        transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
+        zIndex: 1000,
+      }
+    : undefined;
 
-  // Order categories
-  const orderedCategories = ['Basic', 'Selection', 'Advanced', 'Special', 'Action'];
-  
   return (
-    <div className="space-y-3 border rounded-md p-4">
-      <div className="font-medium text-center border-b pb-2">Form Elements</div>
-      
-      <ScrollArea className="h-[calc(100vh-160px)]">
-        <div className="pr-3 space-y-3">
-          {orderedCategories.map(category => {
-            const elements = categories[category];
-            if (!elements?.length) return null;
-            
-            return (
-              <Collapsible key={category} open={openCategories[category]} onOpenChange={() => toggleCategory(category)}>
-                <CollapsibleTrigger className="flex items-center w-full justify-between text-sm font-medium p-1 hover:bg-muted/30 rounded">
-                  <span>{category}</span>
-                  {openCategories[category] ? <ChevronDown size={16} /> : <ChevronRight size={16} />}
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-2 mt-2">
-                  {elements
-                    .filter(element => element.type !== 'button') // Skip button elements
-                    .map(element => (
-                      <ElementPaletteItem 
-                        key={element.type} 
-                        type={element.type} 
-                        label={element.label} 
-                        onAddElement={onAddElement}
-                      />
-                    ))}
-                </CollapsibleContent>
-              </Collapsible>
-            );
-          })}
-        </div>
-      </ScrollArea>
-    </div>
+    <Button
+      ref={setNodeRef}
+      variant="outline"
+      className="justify-start w-full mb-2 gap-2 bg-white dark:bg-neutral-800"
+      style={style}
+      {...attributes}
+      {...listeners}
+      onClick={() => onAddElement(type)}
+    >
+      <FormFieldIcon type={type} size={16} />
+      <span>{label}</span>
+    </Button>
+  );
+};
+
+const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
+  const [activeCategory, setActiveCategory] = useState<string>('basic');
+
+  return (
+    <Card className="border shadow-sm">
+      <CardContent className="p-4">
+        <Tabs defaultValue="basic" value={activeCategory} onValueChange={setActiveCategory}>
+          <TabsList className="grid grid-cols-3 mb-4">
+            <TabsTrigger value="basic">Basic</TabsTrigger>
+            <TabsTrigger value="advanced">Advanced</TabsTrigger>
+            <TabsTrigger value="special">Special</TabsTrigger>
+          </TabsList>
+          
+          <TabsContent value="basic" className="space-y-1">
+            <DraggableElement type="text" label="Text Input" onAddElement={onAddElement} />
+            <DraggableElement type="email" label="Email" onAddElement={onAddElement} />
+            <DraggableElement type="number" label="Number" onAddElement={onAddElement} />
+            <DraggableElement type="password" label="Password" onAddElement={onAddElement} />
+            <DraggableElement type="textarea" label="Text Area" onAddElement={onAddElement} />
+            <DraggableElement type="checkbox" label="Checkbox" onAddElement={onAddElement} />
+            <DraggableElement type="radio" label="Radio Group" onAddElement={onAddElement} />
+            <DraggableElement type="dropdown" label="Dropdown" onAddElement={onAddElement} />
+          </TabsContent>
+          
+          <TabsContent value="advanced" className="space-y-1">
+            <DraggableElement type="datepicker" label="Date Picker" onAddElement={onAddElement} />
+            <DraggableElement type="timepicker" label="Time Picker" onAddElement={onAddElement} />
+            <DraggableElement type="fileupload" label="File Upload" onAddElement={onAddElement} />
+            <DraggableElement type="toggle" label="Toggle Switch" onAddElement={onAddElement} />
+            <DraggableElement type="slider" label="Range Slider" onAddElement={onAddElement} />
+            <DraggableElement type="hidden" label="Hidden Field" onAddElement={onAddElement} />
+          </TabsContent>
+          
+          <TabsContent value="special" className="space-y-1">
+            <DraggableElement type="button" label="Button" onAddElement={onAddElement} />
+            <DraggableElement type="apidropdown" label="API Dropdown" onAddElement={onAddElement} />
+          </TabsContent>
+        </Tabs>
+      </CardContent>
+    </Card>
   );
 };
 

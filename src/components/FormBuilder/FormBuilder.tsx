@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   DndContext, 
   DragEndEvent, 
@@ -12,7 +12,6 @@ import {
 import { toast } from 'sonner';
 import ElementPalette from './ElementPalette';
 import FormElementsList from './FormElementsList';
-import ElementEditor from './ElementEditor';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { generateElement, FormElementType, ElementType } from '@/types/form-builder';
 import FormBuilderHeader from './FormBuilderHeader';
@@ -33,6 +32,15 @@ const FormBuilder = () => {
   );
 
   const editingElement = elements.find(el => el.id === editingElementId) || null;
+  
+  // Effect to auto-switch to properties tab when an element is selected
+  useEffect(() => {
+    if (editingElementId) {
+      setActiveTab('properties');
+    } else if (activeTab === 'properties') {
+      setActiveTab('preview');
+    }
+  }, [editingElementId]);
 
   const handleDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type) {
@@ -55,7 +63,6 @@ const FormBuilder = () => {
       
       setElements([...elements, newElement]);
       setEditingElementId(newElement.id);
-      setActiveTab('properties'); // Switch to properties tab when adding a new element
       
       toast.success(`Added ${type} element`);
     }
@@ -80,7 +87,6 @@ const FormBuilder = () => {
     
     setElements([...elements, newElement]);
     setEditingElementId(newElement.id);
-    setActiveTab('properties'); // Switch to properties tab
     toast.success(`Added ${type} element`);
   };
 
@@ -136,24 +142,25 @@ const FormBuilder = () => {
       };
       setElements([...elements, duplicatedElement]);
       setEditingElementId(duplicatedElement.id);
-      setActiveTab('properties'); // Switch to properties when duplicating
       toast.success(`Duplicated ${elementToDuplicate.type} element`);
     }
   };
 
   const handleElementEdit = (id: string | null) => {
     setEditingElementId(id);
-    if (id) {
-      setActiveTab('properties'); // Switch to properties tab when selecting an element
-    } else {
-      setActiveTab('preview'); // Auto switch to preview when no element is selected
-    }
   };
 
   const handleCanvasClick = (event: React.MouseEvent) => {
-    // If the click is directly on the canvas (not on an element), clear element selection and show preview
+    // If the click is directly on the canvas (not on an element), clear element selection
     if ((event.target as HTMLElement).classList.contains('form-structure-canvas')) {
       setEditingElementId(null);
+    }
+  };
+
+  const handleTabChange = (tab: 'preview' | 'json' | 'properties') => {
+    setActiveTab(tab);
+    // If switching to properties tab but no element is selected, maintain the current tab
+    if (tab === 'properties' && !editingElementId) {
       setActiveTab('preview');
     }
   };
@@ -166,6 +173,8 @@ const FormBuilder = () => {
         onSaveForm={handleSaveForm}
         onClearForm={handleClearForm}
         onExportForm={handleExportForm}
+        activeTab={activeTab}
+        onTabChange={handleTabChange}
       />
       
       <div className="flex-grow overflow-hidden">
@@ -210,7 +219,6 @@ const FormBuilder = () => {
                 elements={elements}
                 onSave={handleSaveForm}
                 activeTab={activeTab}
-                onTabChange={setActiveTab}
                 editingElement={editingElement}
                 onElementUpdate={handleElementUpdate}
                 wizardMode={wizardMode}
