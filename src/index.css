@@ -130,6 +130,20 @@
   grid-column: span 4 / span 4;
 }
 
+/* Fixed height for form elements */
+.form-element-fixed-height {
+  min-height: 4.5rem;
+  height: auto;
+  max-height: none;
+}
+
+.form-preview-content {
+  min-height: 1.5rem;
+  max-height: 2.5rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 /* Hover effect for buttons */
 .hover-scale {
   transition: transform 0.2s ease;
@@ -155,6 +169,10 @@
   position: relative;
   min-height: calc(100vh - 120px);
   width: 100%;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  padding: 1rem;
 }
 
 .dark .canvas-grid {

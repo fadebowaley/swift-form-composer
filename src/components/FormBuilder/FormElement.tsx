@@ -67,10 +67,11 @@ const FormElement = ({
     <div
       ref={setNodeRef}
       style={style}
-      className={`relative border rounded-md p-3 bg-white form-element-hover ${getColSpanClass()}
+      className={`relative border rounded-md p-2 bg-white form-element-hover ${getColSpanClass()}
         ${isDragging ? 'dragging' : ''}
         ${isEditing ? 'ring-2 ring-primary' : ''}
         dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-200
+        form-element-fixed-height
       `}
       onClick={() => onEdit(element.id)}
     >
@@ -83,7 +84,7 @@ const FormElement = ({
           >
             <GripVertical size={14} className="text-gray-500 dark:text-neutral-400" />
           </div>
-          <div className="font-medium text-xs sm:text-sm">{element.label || 'Untitled element'}</div>
+          <div className="font-medium text-xs sm:text-sm truncate">{element.label || 'Untitled element'}</div>
         </div>
         
         <div className="element-actions flex space-x-1">
@@ -108,7 +109,7 @@ const FormElement = ({
         </div>
       </div>
       
-      <div className="mt-2 text-xs">
+      <div className="mt-2 text-xs form-preview-content">
         {element.renderPreview ? element.renderPreview() : (
           <div className="text-xs text-muted-foreground dark:text-neutral-400">Preview not available</div>
         )}
