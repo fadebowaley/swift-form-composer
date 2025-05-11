@@ -115,9 +115,7 @@ const FormElement = ({
         )}
       </div>
 
-      <div className="absolute bottom-1 right-1 flex items-center gap-1 column-size-controls">
-        <span className="column-indicator">{colSpan}/4</span>
-        
+      <div className="absolute bottom-1 right-1 flex items-center gap-1">
         {onDecreaseSpan && colSpan > 1 && (
           <Button 
             variant="ghost" 
