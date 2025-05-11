@@ -110,25 +110,27 @@ const FormElementsList = ({
       onDragEnd={handleDragEnd}
     >
       <SortableContext items={elements.map((e) => e.id)} strategy={verticalListSortingStrategy}>
-        {elements.length === 0 && (
-          <div className="text-center p-8 border border-dashed rounded-md text-muted-foreground col-span-4 dark:border-neutral-700 dark:text-neutral-400">
-            Drag elements here to build your form
-          </div>
-        )}
-        {elements.map((element) => (
-          <FormElement
-            key={element.id}
-            element={element}
-            onRemove={handleRemoveElement}
-            onEdit={onEditElement}
-            onDuplicate={onDuplicateElement}
-            isEditing={element.id === editingElementId}
-            colSpan={columnSpans[element.id] || 1}
-            onColSpanChange={handleColSpanChange}
-            onIncreaseSpan={() => increaseColumnSpan(element.id)}
-            onDecreaseSpan={() => decreaseColumnSpan(element.id)}
-          />
-        ))}
+        <div className="grid grid-cols-4 gap-2 canvas-grid">
+          {elements.length === 0 && (
+            <div className="text-center p-8 border border-dashed rounded-md text-muted-foreground col-span-4 dark:border-neutral-700 dark:text-neutral-400">
+              Drag elements here to build your form
+            </div>
+          )}
+          {elements.map((element) => (
+            <FormElement
+              key={element.id}
+              element={element}
+              onRemove={handleRemoveElement}
+              onEdit={onEditElement}
+              onDuplicate={onDuplicateElement}
+              isEditing={element.id === editingElementId}
+              colSpan={columnSpans[element.id] || 1}
+              onColSpanChange={handleColSpanChange}
+              onIncreaseSpan={() => increaseColumnSpan(element.id)}
+              onDecreaseSpan={() => decreaseColumnSpan(element.id)}
+            />
+          ))}
+        </div>
       </SortableContext>
     </DndContext>
   );
