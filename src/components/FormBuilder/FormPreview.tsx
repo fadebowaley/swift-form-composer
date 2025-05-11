@@ -25,6 +25,7 @@ import { cn } from '@/lib/utils';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { toast } from 'sonner';
+import { Rating } from '@/components/ui/rating';
 
 interface FormPreviewProps {
   elements: FormElementType[];
@@ -103,7 +104,9 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
       buttonType,
       min,
       max,
-      step
+      step,
+      ratingType,
+      maxRating
     } = properties;
     
     // Don't render if this element should be hidden based on conditional logic
@@ -450,6 +453,22 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
             </div>
           );
         }
+      
+      case 'rating':
+        return (
+          <div key={id} className="space-y-2">
+            <Label htmlFor={id}>
+              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
+            </Label>
+            <Rating
+              type={ratingType || 'star'}
+              max={maxRating || 5}
+              value={formData[id] || 0}
+              onChange={(value) => handleInputChange(id, value)}
+            />
+            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+          </div>
+        );
       
       default:
         return null;

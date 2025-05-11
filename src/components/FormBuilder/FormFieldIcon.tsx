@@ -17,7 +17,8 @@ import {
   Eye,
   ArrowRight,
   ArrowLeft,
-  Database
+  Database,
+  Star
 } from 'lucide-react';
 import { ElementType } from '@/types/form-builder';
 
@@ -76,6 +77,8 @@ export const FormFieldIcon = ({ type, size = 18, buttonType }: FormFieldIconProp
       return <Eye size={size} />;
     case 'button':
       return <Plus size={size} />;
+    case 'rating':
+      return <Star size={size} />;
     default:
       return <FileText size={size} />;
   }

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,6 +10,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
 import { PlusCircle, X, Database } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 interface ElementEditorProps {
   element: FormElementType | null;
@@ -177,6 +177,41 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
                   />
                 </div>
               </div>
+            )}
+            
+            {element.type === 'rating' && (
+              <>
+                <div>
+                  <Label htmlFor="rating-type">Rating Type</Label>
+                  <RadioGroup 
+                    defaultValue={element.properties.ratingType || 'star'}
+                    onValueChange={(value) => handleNestedPropertyChange('ratingType', value)}
+                    className="flex flex-col space-y-2 mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="star" id="rating-star" />
+                      <Label htmlFor="rating-star">Stars</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="emoji" id="rating-emoji" />
+                      <Label htmlFor="rating-emoji">Emojis</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                
+                <div>
+                  <Label htmlFor="max-rating">Maximum Rating</Label>
+                  <Input
+                    id="max-rating"
+                    type="number"
+                    min={1}
+                    max={10}
+                    value={element.properties.maxRating || 5}
+                    onChange={(e) => handleNestedPropertyChange('maxRating', Number(e.target.value))}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Maximum number of stars or emojis (1-10)</p>
+                </div>
+              </>
             )}
             
             <div>

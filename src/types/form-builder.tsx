@@ -16,7 +16,8 @@ export type ElementType =
   'slider' |
   'hidden' |
   'button' |
-  'apidropdown';
+  'apidropdown' |
+  'rating';  // Added new rating type
 
 export type ButtonType = 'submit' | 'reset' | 'next' | 'back';
 
@@ -52,6 +53,8 @@ export interface FormElementType {
     step?: number;
     hidden?: boolean;
     apiEndpoint?: string;
+    ratingType?: 'star' | 'emoji'; // Added for rating type
+    maxRating?: number;           // Maximum rating value (usually 5 or 10)
     [key: string]: any;
   };
   renderPreview?: () => ReactNode;
@@ -80,6 +83,7 @@ export const ELEMENT_TYPES: Record<ElementType, { label: string; category: strin
   hidden: { label: 'Hidden Field', category: 'Special' },
   button: { label: 'Button', category: 'Action' },
   apidropdown: { label: 'API Dropdown', category: 'Special' },
+  rating: { label: 'Rating', category: 'Advanced' },  // Added new rating type
 };
 
 export const generateElement = (type: ElementType): FormElementType => {
@@ -303,6 +307,23 @@ export const generateElement = (type: ElementType): FormElementType => {
         renderPreview: () => (
           <div className="w-full h-8 bg-muted/50 rounded border border-input flex items-center px-2">
             <div className="text-sm text-muted-foreground">API Dropdown</div>
+          </div>
+        ),
+      };
+      
+    case 'rating':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          ratingType: 'star',
+          maxRating: 5,
+        },
+        renderPreview: () => (
+          <div className="flex">
+            {Array(5).fill(0).map((_, i) => (
+              <div key={i} className="text-yellow-400 text-sm">★</div>
+            ))}
           </div>
         ),
       };
