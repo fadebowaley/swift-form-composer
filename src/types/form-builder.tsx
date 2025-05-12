@@ -20,7 +20,11 @@ export type ElementType =
   'rating' |
   'dependentDropdown' |
   'searchLookup' |
-  'captcha';  // Added new element types
+  'captcha' |
+  'signature' |   // New: Signature pad
+  'locationPicker' | // New: Location picker
+  'header' |      // New: Form header
+  'paragraph';    // New: Paragraph text
 
 export type ButtonType = 'submit' | 'reset' | 'next' | 'back';
 
@@ -75,6 +79,22 @@ export interface FormElementType {
     secretKey?: string;                  // Secret key (stored securely)
     captchaTheme?: 'light' | 'dark';     // Theme for captcha display
     captchaSize?: 'normal' | 'compact';  // Size of captcha
+    // Signature pad properties
+    signatureBackgroundColor?: string;   // Background color of signature pad
+    signaturePenColor?: string;          // Color of the signature pen
+    signaturePenSize?: number;           // Size/thickness of the pen
+    signatureHeight?: number;            // Height of the signature pad
+    signatureClearable?: boolean;        // Allow clearing the signature
+    // Location picker properties 
+    defaultLatitude?: number;            // Default latitude
+    defaultLongitude?: number;           // Default longitude
+    mapZoomLevel?: number;               // Default zoom level
+    autoDetectLocation?: boolean;        // Auto detect user's location
+    // Header properties
+    headerLevel?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5'; // HTML heading level
+    headerAlignment?: 'left' | 'center' | 'right';  // Text alignment
+    // Paragraph properties
+    paragraphAlignment?: 'left' | 'center' | 'right'; // Text alignment
     [key: string]: any;
   };
   renderPreview?: () => ReactNode;
@@ -107,6 +127,10 @@ export const ELEMENT_TYPES: Record<ElementType, { label: string; category: strin
   dependentDropdown: { label: 'Dependent Dropdown', category: 'Selection' },
   searchLookup: { label: 'Live Database Lookup', category: 'Special' },
   captcha: { label: 'CAPTCHA Protection', category: 'Special' },
+  signature: { label: 'Signature Pad', category: 'Advanced' },
+  locationPicker: { label: 'Location Picker', category: 'Advanced' },
+  header: { label: 'Form Header', category: 'Layout' },
+  paragraph: { label: 'Text Paragraph', category: 'Layout' },
 };
 
 export const generateElement = (type: ElementType): FormElementType => {
@@ -405,6 +429,68 @@ export const generateElement = (type: ElementType): FormElementType => {
           <div className="p-2 border border-dashed border-muted-foreground/50 rounded bg-muted/20">
             <div className="text-sm text-muted-foreground">CAPTCHA Protection</div>
           </div>
+        ),
+      };
+      
+    case 'signature':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          signatureBackgroundColor: '#ffffff',
+          signaturePenColor: '#000000',
+          signaturePenSize: 2,
+          signatureHeight: 150,
+          signatureClearable: true,
+        },
+        renderPreview: () => (
+          <div className="w-full h-20 bg-muted/30 rounded border border-input flex items-center justify-center">
+            <div className="text-sm text-muted-foreground italic">Signature Pad</div>
+          </div>
+        ),
+      };
+      
+    case 'locationPicker':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          defaultLatitude: 40.7128,
+          defaultLongitude: -74.0060, // NYC default
+          mapZoomLevel: 13,
+          autoDetectLocation: true,
+        },
+        renderPreview: () => (
+          <div className="w-full h-32 bg-muted/30 rounded border border-input flex items-center justify-center">
+            <div className="text-sm text-muted-foreground">Map Location Picker</div>
+          </div>
+        ),
+      };
+      
+    case 'header':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          defaultValue: 'Section Header',
+          headerLevel: 'h2',
+          headerAlignment: 'left',
+        },
+        renderPreview: () => (
+          <div className="w-full py-1 font-bold text-lg">Section Header</div>
+        ),
+      };
+      
+    case 'paragraph':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          defaultValue: 'Enter descriptive text for your form here.',
+          paragraphAlignment: 'left',
+        },
+        renderPreview: () => (
+          <div className="w-full text-sm text-muted-foreground">Description text paragraph</div>
         ),
       };
       

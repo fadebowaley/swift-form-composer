@@ -21,7 +21,11 @@ import {
   Star,
   List,
   Search,
-  ShieldCheck
+  ShieldCheck,
+  Edit3,
+  Map,
+  Heading,
+  Type
 } from 'lucide-react';
 import { ElementType } from '@/types/form-builder';
 
@@ -88,6 +92,14 @@ export const FormFieldIcon = ({ type, size = 18, buttonType }: FormFieldIconProp
       return <Search size={size} />;
     case 'captcha':
       return <ShieldCheck size={size} />;
+    case 'signature':
+      return <Edit3 size={size} />;
+    case 'locationPicker':
+      return <Map size={size} />;
+    case 'header':
+      return <Heading size={size} />;
+    case 'paragraph':
+      return <Type size={size} />;
     default:
       return <FileText size={size} />;
   }

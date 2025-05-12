@@ -55,10 +55,11 @@ const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
     <Card className="border shadow-sm">
       <CardContent className="p-4">
         <Tabs defaultValue="basic" value={activeCategory} onValueChange={setActiveCategory}>
-          <TabsList className="grid grid-cols-3 mb-4">
+          <TabsList className="grid grid-cols-4 mb-4">
             <TabsTrigger value="basic">Basic</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
             <TabsTrigger value="special">Special</TabsTrigger>
+            <TabsTrigger value="layout">Layout</TabsTrigger>
           </TabsList>
           
           <TabsContent value="basic" className="space-y-1">
@@ -81,6 +82,8 @@ const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
             <DraggableElement type="hidden" label="Hidden Field" onAddElement={onAddElement} />
             <DraggableElement type="rating" label="Rating" onAddElement={onAddElement} />
             <DraggableElement type="dependentDropdown" label="Dependent Dropdown" onAddElement={onAddElement} />
+            <DraggableElement type="signature" label="Signature Pad" onAddElement={onAddElement} />
+            <DraggableElement type="locationPicker" label="Location Picker" onAddElement={onAddElement} />
           </TabsContent>
           
           <TabsContent value="special" className="space-y-1">
@@ -88,6 +91,11 @@ const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
             <DraggableElement type="apidropdown" label="API Dropdown" onAddElement={onAddElement} />
             <DraggableElement type="searchLookup" label="Live Database Lookup" onAddElement={onAddElement} />
             <DraggableElement type="captcha" label="CAPTCHA Protection" onAddElement={onAddElement} />
+          </TabsContent>
+
+          <TabsContent value="layout" className="space-y-1">
+            <DraggableElement type="header" label="Form Header" onAddElement={onAddElement} />
+            <DraggableElement type="paragraph" label="Text Paragraph" onAddElement={onAddElement} />
           </TabsContent>
         </Tabs>
       </CardContent>
