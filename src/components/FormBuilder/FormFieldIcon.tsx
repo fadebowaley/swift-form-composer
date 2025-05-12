@@ -19,7 +19,9 @@ import {
   ArrowLeft,
   Database,
   Star,
-  List
+  List,
+  Search,
+  ShieldCheck
 } from 'lucide-react';
 import { ElementType } from '@/types/form-builder';
 
@@ -82,6 +84,10 @@ export const FormFieldIcon = ({ type, size = 18, buttonType }: FormFieldIconProp
       return <Star size={size} />;
     case 'dependentDropdown':
       return <List size={size} />;
+    case 'searchLookup':
+      return <Search size={size} />;
+    case 'captcha':
+      return <ShieldCheck size={size} />;
     default:
       return <FileText size={size} />;
   }

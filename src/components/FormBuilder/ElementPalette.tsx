@@ -79,11 +79,15 @@ const ElementPalette = ({ onAddElement }: ElementPaletteProps) => {
             <DraggableElement type="toggle" label="Toggle Switch" onAddElement={onAddElement} />
             <DraggableElement type="slider" label="Range Slider" onAddElement={onAddElement} />
             <DraggableElement type="hidden" label="Hidden Field" onAddElement={onAddElement} />
+            <DraggableElement type="rating" label="Rating" onAddElement={onAddElement} />
+            <DraggableElement type="dependentDropdown" label="Dependent Dropdown" onAddElement={onAddElement} />
           </TabsContent>
           
           <TabsContent value="special" className="space-y-1">
             <DraggableElement type="button" label="Button" onAddElement={onAddElement} />
             <DraggableElement type="apidropdown" label="API Dropdown" onAddElement={onAddElement} />
+            <DraggableElement type="searchLookup" label="Live Database Lookup" onAddElement={onAddElement} />
+            <DraggableElement type="captcha" label="CAPTCHA Protection" onAddElement={onAddElement} />
           </TabsContent>
         </Tabs>
       </CardContent>

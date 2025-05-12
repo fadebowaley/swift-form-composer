@@ -9,7 +9,7 @@ import { FormElementType } from '@/types/form-builder';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { PlusCircle, X, Database, List } from 'lucide-react';
+import { PlusCircle, X, Database, List, Search, ShieldCheck } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
@@ -193,7 +193,8 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
             
             {(element.type === 'text' || element.type === 'textarea' || element.type === 'number' || 
               element.type === 'email' || element.type === 'password' || element.type === 'dropdown' || 
-              element.type === 'fileupload' || element.type === 'dependentDropdown') && (
+              element.type === 'fileupload' || element.type === 'dependentDropdown' || 
+              element.type === 'searchLookup') && (
               <div>
                 <Label htmlFor="placeholder">Placeholder</Label>
                 <Input
@@ -564,6 +565,169 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
                   placeholder="e.g. .jpg, .pdf, .doc"
                 />
                 <p className="text-xs text-muted-foreground mt-1">Comma separated list of file extensions</p>
+              </div>
+            )}
+            
+            {element.type === 'searchLookup' && (
+              <div className="space-y-4 border border-border rounded-md p-4">
+                <div className="flex items-center gap-2">
+                  <Search size={16} />
+                  <h4 className="font-medium">Live Database Lookup Configuration</h4>
+                </div>
+                
+                <div>
+                  <Label htmlFor="searchEndpoint">API Endpoint</Label>
+                  <Input
+                    id="searchEndpoint"
+                    value={element.properties.searchEndpoint || ''}
+                    onChange={(e) => handleNestedPropertyChange('searchEndpoint', e.target.value)}
+                    placeholder="https://api.example.com/search"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">URL to query as user types</p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="searchKey">Search Parameter Name</Label>
+                  <Input
+                    id="searchKey"
+                    value={element.properties.searchKey || 'query'}
+                    onChange={(e) => handleNestedPropertyChange('searchKey', e.target.value)}
+                    placeholder="query"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Parameter name for search term (e.g., "query", "search", "term")</p>
+                </div>
+                
+                <div>
+                  <Label htmlFor="searchResultsKey">Results Path</Label>
+                  <Input
+                    id="searchResultsKey"
+                    value={element.properties.searchResultsKey || 'results'}
+                    onChange={(e) => handleNestedPropertyChange('searchResultsKey', e.target.value)}
+                    placeholder="results"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Path to results array in response (e.g., "data.results")</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="searchLabelKey">Label Field</Label>
+                    <Input
+                      id="searchLabelKey"
+                      value={element.properties.searchLabelKey || 'name'}
+                      onChange={(e) => handleNestedPropertyChange('searchLabelKey', e.target.value)}
+                      placeholder="name"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Field to show in dropdown</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="searchValueKey">Value Field</Label>
+                    <Input
+                      id="searchValueKey"
+                      value={element.properties.searchValueKey || 'id'}
+                      onChange={(e) => handleNestedPropertyChange('searchValueKey', e.target.value)}
+                      placeholder="id"
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Field for actual value</p>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="minChars">Min. Characters</Label>
+                    <Input
+                      id="minChars"
+                      type="number"
+                      value={element.properties.minChars || 2}
+                      onChange={(e) => handleNestedPropertyChange('minChars', Number(e.target.value))}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Start search after X chars</p>
+                  </div>
+                  <div>
+                    <Label htmlFor="debounceMs">Debounce (ms)</Label>
+                    <Input
+                      id="debounceMs"
+                      type="number"
+                      value={element.properties.debounceMs || 300}
+                      onChange={(e) => handleNestedPropertyChange('debounceMs', Number(e.target.value))}
+                    />
+                    <p className="text-xs text-muted-foreground mt-1">Wait time between searches</p>
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {element.type === 'captcha' && (
+              <div className="space-y-4 border border-border rounded-md p-4">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck size={16} />
+                  <h4 className="font-medium">CAPTCHA Configuration</h4>
+                </div>
+                
+                <div>
+                  <Label htmlFor="captchaType">CAPTCHA Type</Label>
+                  <RadioGroup 
+                    defaultValue={element.properties.captchaType || 'recaptcha'}
+                    onValueChange={(value) => handleNestedPropertyChange('captchaType', value)}
+                    className="flex flex-col space-y-2 mt-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="recaptcha" id="captcha-recaptcha" />
+                      <Label htmlFor="captcha-recaptcha">Google reCAPTCHA</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="turnstile" id="captcha-turnstile" />
+                      <Label htmlFor="captcha-turnstile">Cloudflare Turnstile</Label>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="custom" id="captcha-custom" />
+                      <Label htmlFor="captcha-custom">Custom CAPTCHA</Label>
+                    </div>
+                  </RadioGroup>
+                </div>
+                
+                <div>
+                  <Label htmlFor="siteKey">Site Key</Label>
+                  <Input
+                    id="siteKey"
+                    value={element.properties.siteKey || ''}
+                    onChange={(e) => handleNestedPropertyChange('siteKey', e.target.value)}
+                    placeholder="Your site key from Google/Cloudflare"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Public key for CAPTCHA service</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-2">
+                  <div>
+                    <Label htmlFor="captchaTheme">Theme</Label>
+                    <Select 
+                      value={element.properties.captchaTheme || 'light'} 
+                      onValueChange={(value) => handleNestedPropertyChange('captchaTheme', value)}
+                    >
+                      <SelectTrigger id="captchaTheme">
+                        <SelectValue placeholder="Select theme" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="light">Light</SelectItem>
+                        <SelectItem value="dark">Dark</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="captchaSize">Size</Label>
+                    <Select 
+                      value={element.properties.captchaSize || 'normal'} 
+                      onValueChange={(value) => handleNestedPropertyChange('captchaSize', value)}
+                    >
+                      <SelectTrigger id="captchaSize">
+                        <SelectValue placeholder="Select size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="compact">Compact</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
             )}
           </TabsContent>

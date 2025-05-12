@@ -18,7 +18,9 @@ export type ElementType =
   'button' |
   'apidropdown' |
   'rating' |
-  'dependentDropdown';  // Added new dependent dropdown type
+  'dependentDropdown' |
+  'searchLookup' |
+  'captcha';  // Added new element types
 
 export type ButtonType = 'submit' | 'reset' | 'next' | 'back';
 
@@ -59,6 +61,20 @@ export interface FormElementType {
     // Dependent dropdown properties
     parentDropdown?: string;             // ID of the parent dropdown
     optionsMap?: Record<string, string[]>; // Map of parent value to child options
+    // Search lookup properties
+    searchEndpoint?: string;             // API endpoint for search queries
+    searchKey?: string;                  // Key to search by (e.g., "name", "id")
+    searchResultsKey?: string;           // Path to results in the response
+    searchLabelKey?: string;             // Key for display label in results
+    searchValueKey?: string;             // Key for value in results
+    debounceMs?: number;                 // Debounce time in milliseconds
+    minChars?: number;                   // Minimum characters before search
+    // Captcha properties
+    captchaType?: 'recaptcha' | 'custom' | 'turnstile'; // Type of captcha
+    siteKey?: string;                    // Site key for external captcha service
+    secretKey?: string;                  // Secret key (stored securely)
+    captchaTheme?: 'light' | 'dark';     // Theme for captcha display
+    captchaSize?: 'normal' | 'compact';  // Size of captcha
     [key: string]: any;
   };
   renderPreview?: () => ReactNode;
@@ -88,7 +104,9 @@ export const ELEMENT_TYPES: Record<ElementType, { label: string; category: strin
   button: { label: 'Button', category: 'Action' },
   apidropdown: { label: 'API Dropdown', category: 'Special' },
   rating: { label: 'Rating', category: 'Advanced' },
-  dependentDropdown: { label: 'Dependent Dropdown', category: 'Selection' }, // Added new dependent dropdown
+  dependentDropdown: { label: 'Dependent Dropdown', category: 'Selection' },
+  searchLookup: { label: 'Live Database Lookup', category: 'Special' },
+  captcha: { label: 'CAPTCHA Protection', category: 'Special' },
 };
 
 export const generateElement = (type: ElementType): FormElementType => {
@@ -349,6 +367,43 @@ export const generateElement = (type: ElementType): FormElementType => {
         renderPreview: () => (
           <div className="w-full h-8 bg-muted/50 rounded border border-input flex items-center px-2">
             <div className="text-sm text-muted-foreground">Dependent Dropdown</div>
+          </div>
+        ),
+      };
+      
+    case 'searchLookup':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          searchEndpoint: 'https://api.example.com/search',
+          searchKey: 'query',
+          searchResultsKey: 'results',
+          searchLabelKey: 'name',
+          searchValueKey: 'id',
+          debounceMs: 300,
+          minChars: 2,
+        },
+        renderPreview: () => (
+          <div className="w-full h-8 bg-muted/50 rounded border border-input flex items-center px-2">
+            <div className="text-sm text-muted-foreground">Live Database Lookup</div>
+          </div>
+        ),
+      };
+      
+    case 'captcha':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          captchaType: 'recaptcha',
+          siteKey: '',
+          captchaTheme: 'light',
+          captchaSize: 'normal',
+        },
+        renderPreview: () => (
+          <div className="p-2 border border-dashed border-muted-foreground/50 rounded bg-muted/20">
+            <div className="text-sm text-muted-foreground">CAPTCHA Protection</div>
           </div>
         ),
       };
