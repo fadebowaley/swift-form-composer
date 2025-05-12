@@ -18,7 +18,8 @@ import {
   ArrowRight,
   ArrowLeft,
   Database,
-  Star
+  Star,
+  List
 } from 'lucide-react';
 import { ElementType } from '@/types/form-builder';
 
@@ -79,6 +80,8 @@ export const FormFieldIcon = ({ type, size = 18, buttonType }: FormFieldIconProp
       return <Plus size={size} />;
     case 'rating':
       return <Star size={size} />;
+    case 'dependentDropdown':
+      return <List size={size} />;
     default:
       return <FileText size={size} />;
   }

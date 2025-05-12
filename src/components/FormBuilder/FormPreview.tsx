@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FormElementType } from '@/types/form-builder';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -36,6 +36,39 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
   const [formData, setFormData] = useState<Record<string, any>>({});
   const [date, setDate] = useState<Record<string, Date | undefined>>({});
   const [currentStep, setCurrentStep] = useState<number>(0);
+
+  // Track dependent dropdowns' options
+  const [dependentOptions, setDependentOptions] = useState<Record<string, string[]>>({});
+
+  // Update dependent dropdown options when parent values change
+  useEffect(() => {
+    // Find all dependent dropdowns
+    const dependentDropdowns = elements.filter(elem => elem.type === 'dependentDropdown');
+    
+    // For each dependent dropdown, update its options based on parent value
+    dependentDropdowns.forEach(dropdown => {
+      const parentId = dropdown.properties.parentDropdown;
+      if (!parentId) return;
+      
+      const parentValue = formData[parentId];
+      if (!parentValue) return;
+      
+      // Get options for this parent value
+      const options = dropdown.properties.optionsMap?.[parentValue] || [];
+      setDependentOptions(prev => ({
+        ...prev,
+        [dropdown.id]: options
+      }));
+      
+      // Reset the dependent dropdown value if the selected value isn't in the new options
+      if (formData[dropdown.id] && !options.includes(formData[dropdown.id])) {
+        setFormData(prev => ({
+          ...prev,
+          [dropdown.id]: options.length > 0 ? options[0] : ''
+        }));
+      }
+    });
+  }, [formData, elements]);
 
   // Group elements into steps (any element after a "next" button starts a new step)
   const steps = elements.reduce((acc: FormElementType[][], element, index) => {
@@ -106,7 +139,8 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
       max,
       step,
       ratingType,
-      maxRating
+      maxRating,
+      parentDropdown
     } = properties;
     
     // Don't render if this element should be hidden based on conditional logic
@@ -276,6 +310,65 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
                 ))}
               </SelectContent>
             </Select>
+            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+          </div>
+        );
+      
+      // Add the case for dependent dropdown
+      case 'dependentDropdown':
+        const currentOptions = dependentOptions[id] || [];
+        const parentElement = parentDropdown ? elements.find(e => e.id === parentDropdown) : null;
+        
+        return (
+          <div key={id} className="space-y-2">
+            <Label htmlFor={id}>
+              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
+            </Label>
+            
+            {parentElement ? (
+              <>
+                <Select 
+                  value={formData[id] || ''} 
+                  onValueChange={(value) => handleInputChange(id, value)}
+                  disabled={!formData[parentDropdown] || currentOptions.length === 0}
+                >
+                  <SelectTrigger id={id} className="select-trigger">
+                    <SelectValue placeholder={
+                      !formData[parentDropdown] 
+                        ? `Select ${parentElement.label} first` 
+                        : placeholder || 'Select option'
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {currentOptions.length > 0 ? (
+                      currentOptions.map((option, i) => (
+                        <SelectItem key={`${id}-option-${i}`} value={option}>
+                          {option}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        {formData[parentDropdown] 
+                          ? 'No options available for this selection' 
+                          : `Select ${parentElement.label} first`}
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                
+                {/* Display which parent value is currently selected */}
+                {formData[parentDropdown] && (
+                  <p className="text-xs text-muted-foreground">
+                    Based on {parentElement.label}: {formData[parentDropdown]}
+                  </p>
+                )}
+              </>
+            ) : (
+              <p className="text-sm text-amber-500">
+                No parent dropdown configured. Please select a parent in the element settings.
+              </p>
+            )}
+            
             {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
           </div>
         );

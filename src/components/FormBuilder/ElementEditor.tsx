@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -9,8 +9,9 @@ import { FormElementType } from '@/types/form-builder';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from '@/components/ui/button';
-import { PlusCircle, X, Database } from 'lucide-react';
+import { PlusCircle, X, Database, List } from 'lucide-react';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface ElementEditorProps {
   element: FormElementType | null;
@@ -23,6 +24,21 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
   const [apiUrl, setApiUrl] = useState<string>(element?.properties?.apiUrl || '');
   const [apiValueField, setApiValueField] = useState<string>(element?.properties?.apiValueField || 'value');
   const [apiLabelField, setApiLabelField] = useState<string>(element?.properties?.apiLabelField || 'label');
+  const [selectedParentOption, setSelectedParentOption] = useState<string>('');
+  
+  // Dropdown elements that could be parents (excluding the current element)
+  const dropdownElements = elements.filter(
+    elem => elem.type === 'dropdown' && elem.id !== element?.id
+  );
+  
+  useEffect(() => {
+    if (element?.properties?.parentDropdown) {
+      const parent = elements.find(elem => elem.id === element.properties.parentDropdown);
+      if (parent?.properties?.options && parent.properties.options.length > 0) {
+        setSelectedParentOption(parent.properties.options[0]);
+      }
+    }
+  }, [element?.properties?.parentDropdown, elements]);
   
   if (!element) {
     return (
@@ -96,6 +112,62 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
     });
   };
 
+  // Functions for handling dependent dropdown configuration
+  const handleParentChange = (parentId: string) => {
+    // Get the parent dropdown element
+    const parent = elements.find(elem => elem.id === parentId);
+    
+    // Initialize the options map with empty arrays for each parent option
+    const optionsMap: Record<string, string[]> = {};
+    if (parent?.properties?.options) {
+      parent.properties.options.forEach(option => {
+        // Initialize with existing values or empty array
+        optionsMap[option] = element.properties.optionsMap?.[option] || [];
+      });
+    }
+    
+    // Update the element with the new parent and options map
+    onElementUpdate({
+      ...element,
+      properties: {
+        ...element.properties,
+        parentDropdown: parentId,
+        optionsMap,
+      },
+    });
+    
+    // Select the first parent option
+    if (parent?.properties?.options && parent.properties.options.length > 0) {
+      setSelectedParentOption(parent.properties.options[0]);
+    }
+  };
+  
+  const addChildOption = (parentOption: string) => {
+    const optionsMap = { ...(element.properties.optionsMap || {}) };
+    const currentOptions = optionsMap[parentOption] || [];
+    optionsMap[parentOption] = [...currentOptions, `Child ${currentOptions.length + 1}`];
+    
+    handleNestedPropertyChange('optionsMap', optionsMap);
+  };
+  
+  const updateChildOption = (parentOption: string, index: number, value: string) => {
+    const optionsMap = { ...(element.properties.optionsMap || {}) };
+    const currentOptions = [...(optionsMap[parentOption] || [])];
+    currentOptions[index] = value;
+    optionsMap[parentOption] = currentOptions;
+    
+    handleNestedPropertyChange('optionsMap', optionsMap);
+  };
+  
+  const removeChildOption = (parentOption: string, index: number) => {
+    const optionsMap = { ...(element.properties.optionsMap || {}) };
+    const currentOptions = [...(optionsMap[parentOption] || [])];
+    currentOptions.splice(index, 1);
+    optionsMap[parentOption] = currentOptions;
+    
+    handleNestedPropertyChange('optionsMap', optionsMap);
+  };
+
   return (
     <ScrollArea className="h-full">
       <div className="p-4 space-y-4">
@@ -121,7 +193,7 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
             
             {(element.type === 'text' || element.type === 'textarea' || element.type === 'number' || 
               element.type === 'email' || element.type === 'password' || element.type === 'dropdown' || 
-              element.type === 'fileupload') && (
+              element.type === 'fileupload' || element.type === 'dependentDropdown') && (
               <div>
                 <Label htmlFor="placeholder">Placeholder</Label>
                 <Input
@@ -135,7 +207,7 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
             
             {(element.type === 'text' || element.type === 'textarea' || element.type === 'number' ||
               element.type === 'email' || element.type === 'password' || element.type === 'dropdown' ||
-              element.type === 'hidden' || element.type === 'slider') && (
+              element.type === 'hidden' || element.type === 'slider' || element.type === 'dependentDropdown') && (
               <div>
                 <Label htmlFor="defaultValue">Default Value</Label>
                 <Input
@@ -317,6 +389,117 @@ const ElementEditor = ({ element, onElementUpdate, elements, wizardMode = false 
                       </Button>
                     </div>
                   </>
+                )}
+              </div>
+            )}
+            
+            {element.type === 'dependentDropdown' && (
+              <div className="space-y-4 border border-border rounded-md p-4">
+                <div className="flex items-center gap-2">
+                  <List size={16} />
+                  <h4 className="font-medium">Dependent Dropdown Configuration</h4>
+                </div>
+                
+                <div>
+                  <Label htmlFor="parent-dropdown">Parent Dropdown</Label>
+                  <Select 
+                    value={element.properties.parentDropdown || ''} 
+                    onValueChange={handleParentChange}
+                  >
+                    <SelectTrigger id="parent-dropdown">
+                      <SelectValue placeholder="Select parent dropdown" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {dropdownElements.length === 0 ? (
+                        <SelectItem value="none" disabled>No dropdown fields available</SelectItem>
+                      ) : (
+                        dropdownElements.map(dropdown => (
+                          <SelectItem key={dropdown.id} value={dropdown.id}>
+                            {dropdown.label}
+                          </SelectItem>
+                        ))
+                      )}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select which dropdown's value will determine this dropdown's options
+                  </p>
+                </div>
+                
+                {element.properties.parentDropdown && (
+                  <div className="space-y-2">
+                    <Label>Configure Child Options</Label>
+                    
+                    <div className="border border-border rounded-md p-2">
+                      <Label className="text-sm font-medium mb-2 block">
+                        For each parent option, define the child options:
+                      </Label>
+                      
+                      <Select 
+                        value={selectedParentOption} 
+                        onValueChange={setSelectedParentOption}
+                        disabled={!element.properties.parentDropdown}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select parent option" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(elements.find(
+                            elem => elem.id === element.properties.parentDropdown
+                          )?.properties?.options || []).map((option) => (
+                            <SelectItem key={option} value={option}>
+                              {option}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      
+                      {selectedParentOption && (
+                        <div className="mt-3 space-y-2">
+                          <div className="flex items-center justify-between">
+                            <Label className="text-sm">Child options for "{selectedParentOption}"</Label>
+                            <Button 
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => addChildOption(selectedParentOption)}
+                              className="flex items-center gap-1"
+                            >
+                              <PlusCircle size={14} />
+                              Add Option
+                            </Button>
+                          </div>
+                          
+                          <div className="space-y-2 max-h-[200px] overflow-y-auto">
+                            {((element.properties.optionsMap || {})[selectedParentOption] || []).map((option, index) => (
+                              <div key={index} className="flex items-center gap-2">
+                                <Input
+                                  value={option}
+                                  onChange={(e) => updateChildOption(selectedParentOption, index, e.target.value)}
+                                  placeholder={`Child option ${index + 1}`}
+                                />
+                                <Button 
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => removeChildOption(selectedParentOption, index)}
+                                  className="h-8 w-8"
+                                >
+                                  <X size={14} />
+                                </Button>
+                              </div>
+                            ))}
+                            
+                            {!(element.properties.optionsMap || {})[selectedParentOption]?.length && (
+                              <div className="text-sm text-muted-foreground text-center py-2">
+                                No child options added yet. Click "Add Option" to create options.
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             )}

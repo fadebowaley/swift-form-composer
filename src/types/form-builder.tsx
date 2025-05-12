@@ -17,7 +17,8 @@ export type ElementType =
   'hidden' |
   'button' |
   'apidropdown' |
-  'rating';  // Added new rating type
+  'rating' |
+  'dependentDropdown';  // Added new dependent dropdown type
 
 export type ButtonType = 'submit' | 'reset' | 'next' | 'back';
 
@@ -53,8 +54,11 @@ export interface FormElementType {
     step?: number;
     hidden?: boolean;
     apiEndpoint?: string;
-    ratingType?: 'star' | 'emoji'; // Added for rating type
-    maxRating?: number;           // Maximum rating value (usually 5 or 10)
+    ratingType?: 'star' | 'emoji';
+    maxRating?: number;
+    // Dependent dropdown properties
+    parentDropdown?: string;             // ID of the parent dropdown
+    optionsMap?: Record<string, string[]>; // Map of parent value to child options
     [key: string]: any;
   };
   renderPreview?: () => ReactNode;
@@ -83,7 +87,8 @@ export const ELEMENT_TYPES: Record<ElementType, { label: string; category: strin
   hidden: { label: 'Hidden Field', category: 'Special' },
   button: { label: 'Button', category: 'Action' },
   apidropdown: { label: 'API Dropdown', category: 'Special' },
-  rating: { label: 'Rating', category: 'Advanced' },  // Added new rating type
+  rating: { label: 'Rating', category: 'Advanced' },
+  dependentDropdown: { label: 'Dependent Dropdown', category: 'Selection' }, // Added new dependent dropdown
 };
 
 export const generateElement = (type: ElementType): FormElementType => {
@@ -324,6 +329,26 @@ export const generateElement = (type: ElementType): FormElementType => {
             {Array(5).fill(0).map((_, i) => (
               <div key={i} className="text-yellow-400 text-sm">★</div>
             ))}
+          </div>
+        ),
+      };
+      
+    case 'dependentDropdown':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          options: ['Option 1', 'Option 2', 'Option 3'],
+          parentDropdown: '',
+          optionsMap: {
+            'Option 1': ['Child 1A', 'Child 1B', 'Child 1C'],
+            'Option 2': ['Child 2A', 'Child 2B'],
+            'Option 3': ['Child 3A', 'Child 3B', 'Child 3C', 'Child 3D'],
+          },
+        },
+        renderPreview: () => (
+          <div className="w-full h-8 bg-muted/50 rounded border border-input flex items-center px-2">
+            <div className="text-sm text-muted-foreground">Dependent Dropdown</div>
           </div>
         ),
       };
