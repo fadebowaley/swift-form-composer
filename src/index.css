@@ -130,3 +130,34 @@
 .rating-emoji {
   @apply cursor-pointer transition-transform hover:scale-110 text-xl;
 }
+
+/* Element palette tab styles */
+.tabs-list .tabs-trigger {
+  @apply text-xs px-1;
+}
+
+/* Text truncation for element buttons */
+.element-label {
+  @apply truncate;
+}
+
+/* Header styles in form preview */
+.form-preview h1 {
+  @apply text-2xl font-bold;
+}
+
+.form-preview h2 {
+  @apply text-xl font-bold;
+}
+
+.form-preview h3 {
+  @apply text-lg font-bold;
+}
+
+.form-preview h4 {
+  @apply text-base font-bold;
+}
+
+.form-preview h5 {
+  @apply text-sm font-bold;
+}

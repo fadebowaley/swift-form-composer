@@ -40,6 +40,26 @@ const FormBuilder = () => {
     }
   }, [editingElementId]);
 
+  // Add new effect to automatically add navigation buttons when wizard mode is toggled on
+  useEffect(() => {
+    if (wizardMode) {
+      // Find if we already have any next or back buttons
+      const hasNextButton = elements.some(el => el.type === 'button' && el.properties.buttonType === 'next');
+      const hasBackButton = elements.some(el => el.type === 'button' && el.properties.buttonType === 'back');
+      
+      if (!hasNextButton) {
+        // Add a "Next" button if we don't have one
+        const nextButton = generateElement('button');
+        nextButton.properties.buttonType = 'next';
+        nextButton.properties.buttonText = 'Next';
+        nextButton.label = 'Next Button';
+        
+        // Add button at the end
+        setElements([...elements, nextButton]);
+      }
+    }
+  }, [wizardMode]);
+
   const handleDragStart = (event: DragStartEvent) => {
     if (event.active.data.current?.type) {
       // This is a drag from the palette
@@ -59,6 +79,12 @@ const FormBuilder = () => {
       
       const newElement = generateElement(type);
       
+      // If adding a button and wizard mode is on, default to "next" type
+      if (type === 'button' && wizardMode) {
+        newElement.properties.buttonType = 'next';
+        newElement.properties.buttonText = 'Next';
+      }
+      
       setElements([...elements, newElement]);
       setEditingElementId(newElement.id);
       
@@ -70,7 +96,21 @@ const FormBuilder = () => {
     setWizardMode(enabled);
     
     if (enabled) {
-      toast.info("Wizard mode enabled. You can now add Next/Back buttons for multi-step forms.");
+      toast.info("Wizard mode enabled. Multi-step form functionality activated.");
+      
+      // Check if we already have navigation buttons
+      const hasNextButton = elements.some(el => el.type === 'button' && el.properties.buttonType === 'next');
+      
+      // If no next button exists, create one
+      if (!hasNextButton) {
+        const nextButton = generateElement('button');
+        nextButton.properties.buttonType = 'next';
+        nextButton.properties.buttonText = 'Next';
+        nextButton.label = 'Next Button';
+        
+        setElements([...elements, nextButton]);
+        toast.success("Added navigation button to start multi-step form");
+      }
     }
   };
 
@@ -81,6 +121,7 @@ const FormBuilder = () => {
     if (type === 'button' && wizardMode) {
       newElement.properties.buttonType = 'next';
       newElement.properties.buttonText = 'Next';
+      newElement.label = 'Next Button';
     }
     
     setElements([...elements, newElement]);

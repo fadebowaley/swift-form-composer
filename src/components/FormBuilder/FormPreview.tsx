@@ -140,7 +140,9 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
       step,
       ratingType,
       maxRating,
-      parentDropdown
+      parentDropdown,
+      headerSize,
+      paragraphText
     } = properties;
     
     // Don't render if this element should be hidden based on conditional logic
@@ -563,6 +565,33 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
           </div>
         );
       
+      case 'header':
+        const HeaderTag = headerSize || 'h2';
+        return (
+          <div key={id} className="space-y-2">
+            <HeaderTag className={`font-bold ${
+              HeaderTag === 'h1' ? 'text-2xl' : 
+              HeaderTag === 'h2' ? 'text-xl' : 
+              HeaderTag === 'h3' ? 'text-lg' : 
+              HeaderTag === 'h4' ? 'text-base' : 
+              'text-sm'
+            }`}>
+              {label || 'Form Header'}
+            </HeaderTag>
+            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+          </div>
+        );
+        
+      case 'paragraph':
+        return (
+          <div key={id} className="space-y-2">
+            <p className="text-base">
+              {paragraphText || label || 'Paragraph text goes here'}
+            </p>
+            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -598,7 +627,7 @@ const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
           
           {/* Wizard navigation buttons - always shown at bottom */}
           {formSteps.length > 1 && (
-            <div className="wizard-navigation">
+            <div className="wizard-navigation flex justify-between">
               <div>
                 {currentStep > 0 && !backButtonInStep && (
                   <Button 
