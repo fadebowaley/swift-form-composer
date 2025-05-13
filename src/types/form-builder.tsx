@@ -21,10 +21,13 @@ export type ElementType =
   'dependentDropdown' |
   'searchLookup' |
   'captcha' |
-  'signature' |   // New: Signature pad
-  'locationPicker' | // New: Location picker
-  'header' |      // New: Form header
-  'paragraph';    // New: Paragraph text
+  'signature' |
+  'locationPicker' |
+  'header' |
+  'paragraph' |
+  'divider' |      // New: Divider element
+  'spacer' |       // New: Spacer for vertical spacing
+  'container';     // New: Container for grouping elements
 
 export type ButtonType = 'submit' | 'reset' | 'next' | 'back';
 
@@ -63,38 +66,48 @@ export interface FormElementType {
     ratingType?: 'star' | 'emoji';
     maxRating?: number;
     // Dependent dropdown properties
-    parentDropdown?: string;             // ID of the parent dropdown
-    optionsMap?: Record<string, string[]>; // Map of parent value to child options
+    parentDropdown?: string;
+    optionsMap?: Record<string, string[]>;
     // Search lookup properties
-    searchEndpoint?: string;             // API endpoint for search queries
-    searchKey?: string;                  // Key to search by (e.g., "name", "id")
-    searchResultsKey?: string;           // Path to results in the response
-    searchLabelKey?: string;             // Key for display label in results
-    searchValueKey?: string;             // Key for value in results
-    debounceMs?: number;                 // Debounce time in milliseconds
-    minChars?: number;                   // Minimum characters before search
+    searchEndpoint?: string;
+    searchKey?: string;
+    searchResultsKey?: string;
+    searchLabelKey?: string;
+    searchValueKey?: string;
+    debounceMs?: number;
+    minChars?: number;
     // Captcha properties
-    captchaType?: 'recaptcha' | 'custom' | 'turnstile'; // Type of captcha
-    siteKey?: string;                    // Site key for external captcha service
-    secretKey?: string;                  // Secret key (stored securely)
-    captchaTheme?: 'light' | 'dark';     // Theme for captcha display
-    captchaSize?: 'normal' | 'compact';  // Size of captcha
+    captchaType?: 'recaptcha' | 'custom' | 'turnstile';
+    siteKey?: string;
+    secretKey?: string;
+    captchaTheme?: 'light' | 'dark';
+    captchaSize?: 'normal' | 'compact';
     // Signature pad properties
-    signatureBackgroundColor?: string;   // Background color of signature pad
-    signaturePenColor?: string;          // Color of the signature pen
-    signaturePenSize?: number;           // Size/thickness of the pen
-    signatureHeight?: number;            // Height of the signature pad
-    signatureClearable?: boolean;        // Allow clearing the signature
+    signatureBackgroundColor?: string;
+    signaturePenColor?: string;
+    signaturePenSize?: number;
+    signatureHeight?: number;
+    signatureClearable?: boolean;
     // Location picker properties 
-    defaultLatitude?: number;            // Default latitude
-    defaultLongitude?: number;           // Default longitude
-    mapZoomLevel?: number;               // Default zoom level
-    autoDetectLocation?: boolean;        // Auto detect user's location
+    defaultLatitude?: number;
+    defaultLongitude?: number;
+    mapZoomLevel?: number;
+    autoDetectLocation?: boolean;
     // Header properties
-    headerLevel?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5'; // HTML heading level
-    headerAlignment?: 'left' | 'center' | 'right';  // Text alignment
+    headerSize?: 'h1' | 'h2' | 'h3' | 'h4' | 'h5';
+    headerText?: string;
+    headerAlignment?: 'left' | 'center' | 'right';
     // Paragraph properties
-    paragraphAlignment?: 'left' | 'center' | 'right'; // Text alignment
+    paragraphText?: string;
+    paragraphAlignment?: 'left' | 'center' | 'right';
+    // Divider properties
+    dividerOrientation?: 'horizontal' | 'vertical';
+    dividerThickness?: 'thin' | 'medium' | 'thick';
+    // Container properties
+    containerVariant?: 'default' | 'card' | 'outlined' | 'shaded';
+    containerPadding?: 'small' | 'medium' | 'large';
+    // Column span (for all elements)
+    colSpan?: 1 | 2 | 3 | 4;
     [key: string]: any;
   };
   renderPreview?: () => ReactNode;
@@ -124,13 +137,16 @@ export const ELEMENT_TYPES: Record<ElementType, { label: string; category: strin
   button: { label: 'Button', category: 'Action' },
   apidropdown: { label: 'API Dropdown', category: 'Special' },
   rating: { label: 'Rating', category: 'Advanced' },
-  dependentDropdown: { label: 'Dependent Dropdown', category: 'Selection' },
-  searchLookup: { label: 'Live Database Lookup', category: 'Special' },
-  captcha: { label: 'CAPTCHA Protection', category: 'Special' },
+  dependentDropdown: { label: 'Linked Dropdown', category: 'Selection' },
+  searchLookup: { label: 'DB Lookup', category: 'Special' },
+  captcha: { label: 'CAPTCHA', category: 'Special' },
   signature: { label: 'Signature Pad', category: 'Advanced' },
   locationPicker: { label: 'Location Picker', category: 'Advanced' },
   header: { label: 'Form Header', category: 'Layout' },
   paragraph: { label: 'Text Paragraph', category: 'Layout' },
+  divider: { label: 'Divider', category: 'Layout' },
+  spacer: { label: 'Spacer', category: 'Layout' },
+  container: { label: 'Container', category: 'Layout' },
 };
 
 export const generateElement = (type: ElementType): FormElementType => {
@@ -146,6 +162,7 @@ export const generateElement = (type: ElementType): FormElementType => {
       validation: {
         required: false
       },
+      colSpan: 1,
     },
   };
 
@@ -491,6 +508,46 @@ export const generateElement = (type: ElementType): FormElementType => {
         },
         renderPreview: () => (
           <div className="w-full text-sm text-muted-foreground">Description text paragraph</div>
+        ),
+      };
+      
+    case 'divider':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          dividerOrientation: 'horizontal',
+          dividerThickness: 'thin',
+        },
+        renderPreview: () => (
+          <div className="w-full border-t border-gray-200 dark:border-gray-700 my-2" />
+        ),
+      };
+      
+    case 'spacer':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          size: 'medium',
+        },
+        renderPreview: () => (
+          <div className="w-full h-4" />
+        ),
+      };
+      
+    case 'container':
+      return {
+        ...baseElement,
+        properties: {
+          ...baseElement.properties,
+          containerVariant: 'outlined',
+          containerPadding: 'medium',
+        },
+        renderPreview: () => (
+          <div className="w-full p-2 border border-dashed border-gray-300 dark:border-gray-700 rounded-lg bg-muted/20">
+            <div className="text-sm text-center text-muted-foreground">Container</div>
+          </div>
         ),
       };
       
