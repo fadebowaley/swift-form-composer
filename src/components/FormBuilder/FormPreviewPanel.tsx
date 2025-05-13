@@ -3,6 +3,7 @@ import React from 'react';
 import FormPreview from './FormPreview';
 import { FormElementType } from '@/types/form-builder';
 import ElementEditor from './ElementEditor';
+import { cn } from '@/lib/utils';
 
 interface FormPreviewPanelProps {
   elements: FormElementType[];
@@ -23,9 +24,17 @@ const FormPreviewPanel = ({
 }: FormPreviewPanelProps) => {
   return (
     <div className="flex flex-col h-full">
-      <div className="flex-grow overflow-auto p-4">
+      <div className={cn(
+        "flex-grow overflow-auto p-4",
+        activeTab === 'preview' && "bg-white dark:bg-neutral-900"
+      )}>
         {activeTab === 'preview' && (
-          <FormPreview elements={elements} onSave={onSave} />
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-lg font-semibold mb-4 dark:text-white">Form Preview</h2>
+            <div className="border rounded-lg p-6 shadow-sm">
+              <FormPreview elements={elements} onSave={onSave} wizardMode={wizardMode} />
+            </div>
+          </div>
         )}
         
         {activeTab === 'json' && (

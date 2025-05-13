@@ -10,7 +10,7 @@ import {
   useSensors,
 } from '@dnd-kit/core';
 import { toast } from 'sonner';
-import ElementPalette from './ElementPalette';
+import FloatingElementPalette from './FloatingElementPalette';
 import FormElementsList from './FormElementsList';
 import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from '@/components/ui/resizable';
 import { generateElement, FormElementType, ElementType } from '@/types/form-builder';
@@ -47,6 +47,8 @@ const FormBuilder = () => {
       const hasNextButton = elements.some(el => el.type === 'button' && el.properties.buttonType === 'next');
       const hasBackButton = elements.some(el => el.type === 'button' && el.properties.buttonType === 'back');
       
+      let updatedElements = [...elements];
+      
       if (!hasNextButton) {
         // Add a "Next" button if we don't have one
         const nextButton = generateElement('button');
@@ -55,7 +57,37 @@ const FormBuilder = () => {
         nextButton.label = 'Next Button';
         
         // Add button at the end
-        setElements([...elements, nextButton]);
+        updatedElements.push(nextButton);
+      }
+      
+      if (!hasBackButton) {
+        // Add a "Back" button if we don't have one
+        const backButton = generateElement('button');
+        backButton.properties.buttonType = 'back';
+        backButton.properties.buttonText = 'Back';
+        backButton.label = 'Back Button';
+        
+        // Add button at the end
+        updatedElements.push(backButton);
+      }
+
+      // Add a submit button at the final step
+      const hasSubmitButton = elements.some(el => 
+        el.type === 'button' && 
+        (el.properties.buttonType === 'submit' || !el.properties.buttonType)
+      );
+      
+      if (!hasSubmitButton) {
+        const submitButton = generateElement('button');
+        submitButton.properties.buttonType = 'submit';
+        submitButton.properties.buttonText = 'Submit';
+        submitButton.label = 'Submit Button';
+        
+        updatedElements.push(submitButton);
+      }
+      
+      if (updatedElements.length !== elements.length) {
+        setElements(updatedElements);
       }
     }
   }, [wizardMode]);
@@ -100,6 +132,9 @@ const FormBuilder = () => {
       
       // Check if we already have navigation buttons
       const hasNextButton = elements.some(el => el.type === 'button' && el.properties.buttonType === 'next');
+      const hasBackButton = elements.some(el => el.type === 'button' && el.properties.buttonType === 'back');
+      
+      let updatedElements = [...elements];
       
       // If no next button exists, create one
       if (!hasNextButton) {
@@ -108,8 +143,37 @@ const FormBuilder = () => {
         nextButton.properties.buttonText = 'Next';
         nextButton.label = 'Next Button';
         
-        setElements([...elements, nextButton]);
-        toast.success("Added navigation button to start multi-step form");
+        updatedElements.push(nextButton);
+      }
+      
+      // If no back button exists, create one
+      if (!hasBackButton) {
+        const backButton = generateElement('button');
+        backButton.properties.buttonType = 'back';
+        backButton.properties.buttonText = 'Back';
+        backButton.label = 'Back Button';
+        
+        updatedElements.push(backButton);
+      }
+      
+      // Add a submit button at the final step if it doesn't exist
+      const hasSubmitButton = elements.some(el => 
+        el.type === 'button' && 
+        (el.properties.buttonType === 'submit' || !el.properties.buttonType)
+      );
+      
+      if (!hasSubmitButton) {
+        const submitButton = generateElement('button');
+        submitButton.properties.buttonType = 'submit';
+        submitButton.properties.buttonText = 'Submit';
+        submitButton.label = 'Submit Button';
+        
+        updatedElements.push(submitButton);
+      }
+      
+      if (updatedElements.length !== elements.length) {
+        setElements(updatedElements);
+        toast.success("Added navigation buttons for multi-step form");
       }
     }
   };
@@ -228,14 +292,11 @@ const FormBuilder = () => {
           onDragOver={handleDragOver}
           onDragEnd={handleDragEnd}
         >
+          {/* Floating Element Palette */}
+          <FloatingElementPalette onAddElement={handleAddElement} />
+          
           <ResizablePanelGroup direction="horizontal">
-            <ResizablePanel defaultSize={20} minSize={15} maxSize={30} className="border-r dark:border-neutral-800">
-              <div className="p-4">
-                <ElementPalette onAddElement={handleAddElement} />
-              </div>
-            </ResizablePanel>
-            
-            <ResizablePanel defaultSize={50} className="overflow-hidden bg-slate-50 dark:bg-neutral-900">
+            <ResizablePanel defaultSize={60} className="overflow-hidden bg-slate-50 dark:bg-neutral-900">
               <div 
                 className="p-4 h-full form-structure-canvas"
                 onClick={handleCanvasClick}
@@ -260,7 +321,7 @@ const FormBuilder = () => {
             
             <ResizableHandle />
             
-            <ResizablePanel defaultSize={30} className="overflow-auto">
+            <ResizablePanel defaultSize={40} className="overflow-auto">
               <FormPreviewPanel 
                 elements={elements}
                 onSave={handleSaveForm}

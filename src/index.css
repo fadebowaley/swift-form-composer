@@ -161,3 +161,35 @@
 .form-preview h5 {
   @apply text-sm font-bold;
 }
+
+/* Floating Element Palette */
+.floating-palette {
+  box-shadow: 0 2px 15px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  z-index: 100;
+}
+
+.handle-bar {
+  cursor: grab;
+}
+
+.handle-bar:active {
+  cursor: grabbing;
+}
+
+/* Form preview updates */
+.form-preview .grid-cols-4 > .col-span-1 {
+  grid-column: span 1 / span 1;
+}
+
+.form-preview .grid-cols-4 > .col-span-2 {
+  grid-column: span 2 / span 2;
+}
+
+.form-preview .grid-cols-4 > .col-span-3 {
+  grid-column: span 3 / span 3;
+}
+
+.form-preview .grid-cols-4 > .col-span-4 {
+  grid-column: span 4 / span 4;
+}

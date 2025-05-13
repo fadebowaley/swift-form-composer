@@ -1,662 +1,214 @@
-import React, { useState, useEffect } from 'react';
-import { FormElementType } from '@/types/form-builder';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
+
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from '@/components/ui/popover';
-import { format } from 'date-fns';
-import { Calendar as CalendarIcon, Clock as ClockIcon } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Switch } from '@/components/ui/switch';
-import { Slider } from '@/components/ui/slider';
+import { Form } from '@/components/ui/form';
+import { FormElementType } from '@/types/form-builder';
+import { useForm } from 'react-hook-form';
 import { toast } from 'sonner';
-import { Rating } from '@/components/ui/rating';
+import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 
 interface FormPreviewProps {
   elements: FormElementType[];
-  onSave?: () => void;
+  onSave: () => void;
+  wizardMode?: boolean;
 }
 
-const FormPreview = ({ elements, onSave }: FormPreviewProps) => {
-  const [formData, setFormData] = useState<Record<string, any>>({});
-  const [date, setDate] = useState<Record<string, Date | undefined>>({});
-  const [currentStep, setCurrentStep] = useState<number>(0);
-
-  // Track dependent dropdowns' options
-  const [dependentOptions, setDependentOptions] = useState<Record<string, string[]>>({});
-
-  // Update dependent dropdown options when parent values change
-  useEffect(() => {
-    // Find all dependent dropdowns
-    const dependentDropdowns = elements.filter(elem => elem.type === 'dependentDropdown');
+const FormPreview = ({ elements, onSave, wizardMode = false }: FormPreviewProps) => {
+  const [currentStep, setCurrentStep] = useState(0);
+  const form = useForm();
+  
+  // If wizard mode is on, split elements into steps based on "next" buttons
+  const steps = React.useMemo(() => {
+    if (!wizardMode) return [elements];
     
-    // For each dependent dropdown, update its options based on parent value
-    dependentDropdowns.forEach(dropdown => {
-      const parentId = dropdown.properties.parentDropdown;
-      if (!parentId) return;
-      
-      const parentValue = formData[parentId];
-      if (!parentValue) return;
-      
-      // Get options for this parent value
-      const options = dropdown.properties.optionsMap?.[parentValue] || [];
-      setDependentOptions(prev => ({
-        ...prev,
-        [dropdown.id]: options
-      }));
-      
-      // Reset the dependent dropdown value if the selected value isn't in the new options
-      if (formData[dropdown.id] && !options.includes(formData[dropdown.id])) {
-        setFormData(prev => ({
-          ...prev,
-          [dropdown.id]: options.length > 0 ? options[0] : ''
-        }));
+    const result: FormElementType[][] = [];
+    let currentStepElements: FormElementType[] = [];
+    
+    // Iterate through elements and split them by "next" button
+    elements.forEach((element) => {
+      if (element.type === 'button' && element.properties.buttonType === 'next' && currentStepElements.length > 0) {
+        result.push([...currentStepElements]);
+        currentStepElements = [element]; // Include the button in the next step
+      } else if (element.type === 'button' && element.properties.buttonType === 'back') {
+        currentStepElements.push(element);
+      } else {
+        currentStepElements.push(element);
       }
     });
-  }, [formData, elements]);
-
-  // Group elements into steps (any element after a "next" button starts a new step)
-  const steps = elements.reduce((acc: FormElementType[][], element, index) => {
-    if (index === 0) {
-      acc.push([element]);
-    } else if (
-      elements[index - 1].type === 'button' && 
-      elements[index - 1].properties.buttonType === 'next'
-    ) {
-      acc.push([element]);
+    
+    // Add the remaining elements as the last step
+    if (currentStepElements.length > 0) {
+      result.push(currentStepElements);
+    }
+    
+    // If no steps were created (no "next" buttons), use all elements as a single step
+    return result.length ? result : [elements];
+  }, [elements, wizardMode]);
+  
+  const handleSubmit = (data: any) => {
+    console.log('Form submitted with data:', data);
+    toast.success('Form submitted!');
+    onSave();
+  };
+  
+  const nextStep = () => {
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(prev => prev + 1);
+      toast.info(`Moving to step ${currentStep + 2}`);
     } else {
-      acc[acc.length - 1].push(element);
-    }
-    return acc;
-  }, []);
-
-  // If no steps were created (no next buttons), put all elements in one step
-  const formSteps = steps.length > 0 ? steps : [elements];
-
-  const handleInputChange = (id: string, value: any) => {
-    setFormData((prev) => ({
-      ...prev,
-      [id]: value,
-    }));
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    console.log('Form data:', formData);
-    toast.success('Form submitted! Check the console for data.');
-    if (onSave) onSave();
-  };
-
-  const moveToNextStep = () => {
-    if (currentStep < formSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      form.handleSubmit(handleSubmit)();
     }
   };
-
-  const moveToPreviousStep = () => {
+  
+  const prevStep = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      setCurrentStep(prev => prev - 1);
+      toast.info(`Moving back to step ${currentStep}`);
     }
   };
+  
+  const isLastStep = currentStep === steps.length - 1;
+  const currentElements = wizardMode ? steps[currentStep] : elements;
 
-  // Check if an element should be shown based on conditional logic
-  const shouldShowElement = (element: FormElementType): boolean => {
-    if (!element.properties.conditional) return true;
+  // Organize elements in rows based on column spans
+  const renderElements = () => {
+    let currentRow: JSX.Element[] = [];
+    let currentRowSpan = 0;
+    const rows: JSX.Element[] = [];
+    const totalColumns = 4;
     
-    const { conditionalLogic } = element.properties;
-    if (!conditionalLogic?.dependsOn) return true;
-    
-    const dependsOnValue = formData[conditionalLogic.dependsOn];
-    return dependsOnValue === conditionalLogic.showWhen;
-  };
-
-  const renderField = (element: FormElementType) => {
-    const { id, type, label, properties } = element;
-    const { 
-      required, 
-      helpText, 
-      placeholder, 
-      defaultValue, 
-      options, 
-      buttonText, 
-      buttonType,
-      min,
-      max,
-      step,
-      ratingType,
-      maxRating,
-      parentDropdown,
-      headerSize,
-      paragraphText
-    } = properties;
-    
-    // Don't render if this element should be hidden based on conditional logic
-    if (!shouldShowElement(element)) return null;
-
-    // Don't render next/back buttons here - they'll be rendered at the bottom
-    if (type === 'button' && (buttonType === 'next' || buttonType === 'back')) {
-      return null;
-    }
-
-    switch (type) {
-      case 'text':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Input
-              id={id}
-              placeholder={placeholder}
-              defaultValue={defaultValue}
-              required={properties.validation?.required}
-              onChange={(e) => handleInputChange(id, e.target.value)}
-            />
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+    currentElements.forEach((element, index) => {
+      // Get element span (default to 1 if not set)
+      const elementSpan = element.properties.colSpan || 1;
+      
+      // If this element won't fit in current row, start a new row
+      if (currentRowSpan + elementSpan > totalColumns) {
+        rows.push(
+          <div key={`row-${rows.length}`} className="grid grid-cols-4 gap-4 mb-4 w-full">
+            {currentRow}
           </div>
         );
+        currentRow = [];
+        currentRowSpan = 0;
+      }
       
-      case 'textarea':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Textarea
-              id={id}
-              placeholder={placeholder}
-              defaultValue={defaultValue}
-              required={properties.validation?.required}
-              onChange={(e) => handleInputChange(id, e.target.value)}
-            />
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+      // Add element to the current row
+      const widthClass = `col-span-${elementSpan}`;
+      
+      // Render different elements based on type
+      if (element.type === 'header') {
+        const size = element.properties.headerSize || 'h2';
+        currentRow.push(
+          <div className={widthClass} key={element.id}>
+            {size === 'h1' && <h1>{element.properties.headerText || 'Header'}</h1>}
+            {size === 'h2' && <h2>{element.properties.headerText || 'Header'}</h2>}
+            {size === 'h3' && <h3>{element.properties.headerText || 'Header'}</h3>}
+            {size === 'h4' && <h4>{element.properties.headerText || 'Header'}</h4>}
+            {size === 'h5' && <h5>{element.properties.headerText || 'Header'}</h5>}
           </div>
         );
-      
-      case 'number':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Input
-              id={id}
-              type="number"
-              placeholder={placeholder}
-              defaultValue={defaultValue}
-              min={min}
-              max={max}
-              step={step}
-              required={properties.validation?.required}
-              onChange={(e) => handleInputChange(id, e.target.value)}
-            />
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+      } else if (element.type === 'paragraph') {
+        currentRow.push(
+          <div className={widthClass} key={element.id}>
+            <p className="text-muted-foreground">{element.properties.paragraphText || 'Paragraph text'}</p>
           </div>
         );
-      
-      case 'email':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Input
-              id={id}
-              type="email"
-              placeholder={placeholder}
-              defaultValue={defaultValue}
-              required={properties.validation?.required}
-              onChange={(e) => handleInputChange(id, e.target.value)}
-            />
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'password':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Input
-              id={id}
-              type="password"
-              placeholder={placeholder}
-              defaultValue={defaultValue}
-              required={properties.validation?.required}
-              onChange={(e) => handleInputChange(id, e.target.value)}
-            />
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'checkbox':
-        return (
-          <div key={id} className="space-y-2">
-            <Label>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <div className="space-y-2">
-              {options && options.map((option, i) => (
-                <div key={`${id}-option-${i}`} className="flex items-center space-x-2">
-                  <Checkbox 
-                    id={`${id}-option-${i}`}
-                    onCheckedChange={(checked) => {
-                      const currentSelections = formData[id] || [];
-                      const newSelections = checked 
-                        ? [...currentSelections, option]
-                        : currentSelections.filter((item: string) => item !== option);
-                      handleInputChange(id, newSelections);
-                    }}
-                  />
-                  <Label htmlFor={`${id}-option-${i}`}>{option}</Label>
-                </div>
-              ))}
-            </div>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'radio':
-        return (
-          <div key={id} className="space-y-2">
-            <Label>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <RadioGroup
-              defaultValue={defaultValue}
-              onValueChange={(value) => handleInputChange(id, value)}
-            >
-              {options && options.map((option, i) => (
-                <div key={`${id}-option-${i}`} className="flex items-center space-x-2">
-                  <RadioGroupItem value={option} id={`${id}-option-${i}`} />
-                  <Label htmlFor={`${id}-option-${i}`}>{option}</Label>
-                </div>
-              ))}
-            </RadioGroup>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'dropdown':
-      case 'apidropdown':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Select defaultValue={defaultValue} onValueChange={(value) => handleInputChange(id, value)}>
-              <SelectTrigger id={id} className="select-trigger">
-                <SelectValue placeholder={placeholder || 'Select option'} />
-              </SelectTrigger>
-              <SelectContent>
-                {options && options.map((option, i) => (
-                  <SelectItem key={`${id}-option-${i}`} value={option}>
-                    {option}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      // Add the case for dependent dropdown
-      case 'dependentDropdown':
-        const currentOptions = dependentOptions[id] || [];
-        const parentElement = parentDropdown ? elements.find(e => e.id === parentDropdown) : null;
-        
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            
-            {parentElement ? (
-              <>
-                <Select 
-                  value={formData[id] || ''} 
-                  onValueChange={(value) => handleInputChange(id, value)}
-                  disabled={!formData[parentDropdown] || currentOptions.length === 0}
-                >
-                  <SelectTrigger id={id} className="select-trigger">
-                    <SelectValue placeholder={
-                      !formData[parentDropdown] 
-                        ? `Select ${parentElement.label} first` 
-                        : placeholder || 'Select option'
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {currentOptions.length > 0 ? (
-                      currentOptions.map((option, i) => (
-                        <SelectItem key={`${id}-option-${i}`} value={option}>
-                          {option}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="none" disabled>
-                        {formData[parentDropdown] 
-                          ? 'No options available for this selection' 
-                          : `Select ${parentElement.label} first`}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                
-                {/* Display which parent value is currently selected */}
-                {formData[parentDropdown] && (
-                  <p className="text-xs text-muted-foreground">
-                    Based on {parentElement.label}: {formData[parentDropdown]}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="text-sm text-amber-500">
-                No parent dropdown configured. Please select a parent in the element settings.
-              </p>
-            )}
-            
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'datepicker':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  id={id}
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal calendar-button",
-                    !date[id] && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {date[id] ? format(date[id] as Date, "PPP") : placeholder || "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  mode="single"
-                  selected={date[id]}
-                  onSelect={(newDate) => {
-                    setDate(prev => ({ ...prev, [id]: newDate }));
-                    handleInputChange(id, newDate);
-                  }}
-                  initialFocus
-                  className="pointer-events-auto"
-                />
-              </PopoverContent>
-            </Popover>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'timepicker':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <div className="flex space-x-2">
-              <Input
-                id={`${id}-hour`}
-                type="number"
-                placeholder="HH"
-                min={0}
-                max={23}
-                className="w-20"
-                onChange={(e) => {
-                  const hour = e.target.value;
-                  const minute = formData[`${id}-minute`] || '00';
-                  handleInputChange(id, `${hour}:${minute}`);
-                  handleInputChange(`${id}-hour`, hour);
-                }}
-              />
-              <span className="text-xl self-center">:</span>
-              <Input
-                id={`${id}-minute`}
-                type="number"
-                placeholder="MM"
-                min={0}
-                max={59}
-                className="w-20"
-                onChange={(e) => {
-                  const minute = e.target.value;
-                  const hour = formData[`${id}-hour`] || '00';
-                  handleInputChange(id, `${hour}:${minute}`);
-                  handleInputChange(`${id}-minute`, minute);
-                }}
-              />
-            </div>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'fileupload':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Input
-              id={id}
-              type="file"
-              required={properties.validation?.required}
-              className="cursor-pointer"
-              accept={properties.acceptedTypes}
-              onChange={(e) => handleInputChange(id, e.target.files?.[0])}
-            />
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'toggle':
-        return (
-          <div key={id} className="space-y-2">
-            <div className="flex items-center space-x-2">
-              <Switch 
-                id={id}
-                onCheckedChange={(checked) => handleInputChange(id, checked)}
-              />
-              <Label htmlFor={id}>
-                {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-              </Label>
-            </div>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'slider':
-        return (
-          <div key={id} className="space-y-2">
-            <div className="flex justify-between">
-              <Label htmlFor={id}>
-                {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-              </Label>
-              <span>{formData[id] || defaultValue || min}</span>
-            </div>
-            <Slider
-              id={id}
-              defaultValue={[parseInt(defaultValue) || min || 0]}
-              min={min || 0}
-              max={max || 100}
-              step={step || 1}
-              onValueChange={([value]) => handleInputChange(id, value)}
-            />
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      case 'hidden':
-        return (
-          <Input
-            key={id}
-            id={id}
-            type="hidden"
-            value={defaultValue || ''}
-          />
-        );
-      
-      case 'button':
-        if (buttonType === 'submit') {
-          return (
-            <div key={id} className="space-y-2">
-              <Button type="submit">
-                {buttonText || 'Submit'}
-              </Button>
-            </div>
-          );
-        } else if (buttonType === 'reset') {
-          return (
-            <div key={id} className="space-y-2">
+      } else if (element.type === 'button') {
+        const buttonType = element.properties.buttonType || 'submit';
+        // Only render buttons in wizard mode if they are relevant to current step
+        if (!wizardMode || (wizardMode && (buttonType === 'submit' && isLastStep))) {
+          currentRow.push(
+            <div className={widthClass} key={element.id}>
               <Button 
-                type="reset" 
-                variant="outline"
-                onClick={() => setFormData({})}
+                type="submit" 
+                variant={element.properties.buttonVariant || 'default'}
+                className="w-full"
+                onClick={handleSubmit}
               >
-                {buttonText || 'Reset'}
-              </Button>
-            </div>
-          );
-        } else {
-          return (
-            <div key={id} className="space-y-2">
-              <Button type="button">
-                {buttonText || 'Button'}
+                {element.properties.buttonText || 'Submit'}
               </Button>
             </div>
           );
         }
-      
-      case 'rating':
-        return (
-          <div key={id} className="space-y-2">
-            <Label htmlFor={id}>
-              {label} {properties.validation?.required && <span className="text-destructive">*</span>}
-            </Label>
-            <Rating
-              type={ratingType || 'star'}
-              max={maxRating || 5}
-              value={formData[id] || 0}
-              onChange={(value) => handleInputChange(id, value)}
-            />
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+      } else {
+        // For all other element types
+        currentRow.push(
+          <div className={widthClass} key={element.id}>
+            {element.renderElement ? (
+              element.renderElement()
+            ) : (
+              <div className="p-2 border rounded-md text-sm text-muted-foreground">
+                {element.label || 'Form Element'}
+              </div>
+            )}
           </div>
         );
+      }
       
-      case 'header':
-        const HeaderTag = headerSize || 'h2';
-        return (
-          <div key={id} className="space-y-2">
-            <HeaderTag className={`font-bold ${
-              HeaderTag === 'h1' ? 'text-2xl' : 
-              HeaderTag === 'h2' ? 'text-xl' : 
-              HeaderTag === 'h3' ? 'text-lg' : 
-              HeaderTag === 'h4' ? 'text-base' : 
-              'text-sm'
-            }`}>
-              {label || 'Form Header'}
-            </HeaderTag>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
+      // Update current row span
+      currentRowSpan += elementSpan;
+      
+      // If this is the last element, add the current row
+      if (index === currentElements.length - 1 && currentRow.length > 0) {
+        rows.push(
+          <div key={`row-${rows.length}`} className="grid grid-cols-4 gap-4 mb-4 w-full">
+            {currentRow}
           </div>
         );
-        
-      case 'paragraph':
-        return (
-          <div key={id} className="space-y-2">
-            <p className="text-base">
-              {paragraphText || label || 'Paragraph text goes here'}
-            </p>
-            {helpText && <p className="text-sm text-muted-foreground">{helpText}</p>}
-          </div>
-        );
-      
-      default:
-        return null;
-    }
+      }
+    });
+    
+    return rows;
   };
 
-  const currentElements = formSteps[currentStep] || [];
-  const hasSubmitButton = currentElements.some(e => e.type === 'button' && e.properties.buttonType === 'submit');
-  const isLastStep = currentStep === formSteps.length - 1;
-
-  // Find all next/back buttons in the current step (to prevent duplication)
-  const nextButtonInStep = currentElements.find(e => e.type === 'button' && e.properties.buttonType === 'next');
-  const backButtonInStep = currentElements.find(e => e.type === 'button' && e.properties.buttonType === 'back');
-
   return (
-    <div className="p-4 border rounded-lg bg-white dark:bg-neutral-900 form-preview">
-      {formSteps.length > 1 && (
-        <div className="mb-4 flex justify-between items-center">
-          <div className="text-sm text-muted-foreground">
-            Step {currentStep + 1} of {formSteps.length}
-          </div>
-        </div>
-      )}
-      
-      <form onSubmit={handleSubmit}>
-        <div className="space-y-4">
-          {currentElements.map(renderField)}
-          
-          {currentElements.length === 0 && (
-            <div className="text-center p-8 text-muted-foreground">
-              Your form preview will appear here
+    <div className="form-preview">
+      <Form {...form}>
+        <form
+          onSubmit={form.handleSubmit(handleSubmit)}
+          className="space-y-4 w-full max-w-full"
+        >
+          {currentElements.length === 0 ? (
+            <div className="text-center p-8 border border-dashed rounded-md text-muted-foreground dark:border-neutral-700 dark:text-neutral-400">
+              Drag elements from the palette to build your form
             </div>
-          )}
+          ) : renderElements()}
           
-          {/* Wizard navigation buttons - always shown at bottom */}
-          {formSteps.length > 1 && (
-            <div className="wizard-navigation flex justify-between">
-              <div>
-                {currentStep > 0 && !backButtonInStep && (
-                  <Button 
-                    variant="outline" 
-                    onClick={moveToPreviousStep}
-                    type="button"
-                  >
-                    Previous
-                  </Button>
-                )}
-              </div>
-              <div>
-                {!isLastStep && !nextButtonInStep && (
-                  <Button 
-                    onClick={moveToNextStep}
-                    type="button"
-                  >
+          {/* Wizard navigation controls */}
+          {wizardMode && (
+            <div className="wizard-navigation border-t pt-4 mt-6 flex justify-between">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={prevStep}
+                disabled={currentStep === 0}
+                className="flex items-center gap-2"
+              >
+                <ChevronLeft size={18} />
+                Previous
+              </Button>
+              
+              <Button
+                type="button"
+                onClick={nextStep}
+                className="flex items-center gap-2"
+              >
+                {isLastStep ? (
+                  <>
+                    Submit
+                    <Check size={18} />
+                  </>
+                ) : (
+                  <>
                     Next
-                  </Button>
+                    <ChevronRight size={18} />
+                  </>
                 )}
-                
-                {isLastStep && !hasSubmitButton && currentElements.length > 0 && (
-                  <Button type="submit">Submit Form</Button>
-                )}
-              </div>
+              </Button>
             </div>
           )}
-        </div>
-      </form>
+        </form>
+      </Form>
     </div>
   );
 };
