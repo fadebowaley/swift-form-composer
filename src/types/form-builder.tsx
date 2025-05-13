@@ -1,3 +1,4 @@
+
 import { ReactNode } from "react";
 
 export type ElementType = 
@@ -162,7 +163,7 @@ export const generateElement = (type: ElementType): FormElementType => {
       validation: {
         required: false
       },
-      colSpan: 1,
+      colSpan: 1 as 1 | 2 | 3 | 4, // Cast to the correct type
     },
   };
 
