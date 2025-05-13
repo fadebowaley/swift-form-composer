@@ -33,7 +33,11 @@ const FormElementsRenderer = ({
     
     elements.forEach((element, index) => {
       // Get element span (default to 1 if not set)
-      const elementSpan = element.properties.colSpan || 1;
+      const elementSpan = element.properties.colSpan ? 
+        (typeof element.properties.colSpan === 'number' ? 
+          Math.min(Math.max(1, element.properties.colSpan), 4) as 1 | 2 | 3 | 4 : 
+          element.properties.colSpan) : 
+        1;
       
       // If this element won't fit in current row, start a new row
       if (currentRowSpan + elementSpan > totalColumns) {

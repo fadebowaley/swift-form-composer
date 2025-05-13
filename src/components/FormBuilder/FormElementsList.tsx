@@ -1,4 +1,3 @@
-
 import React from 'react';
 import {
   DndContext,
@@ -82,6 +81,23 @@ const FormElementsList = ({
   };
   
   const handleColSpanChange = (id: string, span: 1 | 2 | 3 | 4) => {
+    // Update the column span in the element's properties
+    const updatedElements = elements.map(element => {
+      if (element.id === id) {
+        return {
+          ...element,
+          properties: {
+            ...element.properties,
+            colSpan: span
+          }
+        };
+      }
+      return element;
+    });
+    
+    onElementsChange(updatedElements);
+    
+    // Also keep track in our local state
     setColumnSpans(prev => ({
       ...prev,
       [id]: span
@@ -89,18 +105,45 @@ const FormElementsList = ({
   };
 
   const increaseColumnSpan = (id: string) => {
-    const currentSpan = columnSpans[id] || 1;
+    const element = elements.find(el => el.id === id);
+    const currentSpan = element?.properties.colSpan ? 
+      (typeof element.properties.colSpan === 'number' ? 
+        Math.min(Math.max(1, element.properties.colSpan), 4) : 
+        element.properties.colSpan) : 
+      1;
+    
     if (currentSpan < 4) {
       handleColSpanChange(id, (currentSpan + 1) as 1 | 2 | 3 | 4);
     }
   };
 
   const decreaseColumnSpan = (id: string) => {
-    const currentSpan = columnSpans[id] || 1;
+    const element = elements.find(el => el.id === id);
+    const currentSpan = element?.properties.colSpan ? 
+      (typeof element.properties.colSpan === 'number' ? 
+        Math.min(Math.max(1, element.properties.colSpan), 4) : 
+        element.properties.colSpan) : 
+      1;
+    
     if (currentSpan > 1) {
       handleColSpanChange(id, (currentSpan - 1) as 1 | 2 | 3 | 4);
     }
   };
+
+  // Initialize column spans from elements
+  React.useEffect(() => {
+    const initialSpans: Record<string, 1 | 2 | 3 | 4> = {};
+    elements.forEach(element => {
+      if (element.properties.colSpan) {
+        initialSpans[element.id] = typeof element.properties.colSpan === 'number' ? 
+          Math.min(Math.max(1, element.properties.colSpan), 4) as 1 | 2 | 3 | 4 : 
+          element.properties.colSpan;
+      } else {
+        initialSpans[element.id] = 1;
+      }
+    });
+    setColumnSpans(initialSpans);
+  }, []);
 
   return (
     <DndContext
@@ -115,20 +158,28 @@ const FormElementsList = ({
             Drag elements here to build your form
           </div>
         )}
-        {elements.map((element) => (
-          <FormElement
-            key={element.id}
-            element={element}
-            onRemove={handleRemoveElement}
-            onEdit={onEditElement}
-            onDuplicate={onDuplicateElement}
-            isEditing={element.id === editingElementId}
-            colSpan={columnSpans[element.id] || 1}
-            onColSpanChange={handleColSpanChange}
-            onIncreaseSpan={() => increaseColumnSpan(element.id)}
-            onDecreaseSpan={() => decreaseColumnSpan(element.id)}
-          />
-        ))}
+        {elements.map((element) => {
+          const elementColSpan = element.properties.colSpan ? 
+            (typeof element.properties.colSpan === 'number' ? 
+              Math.min(Math.max(1, element.properties.colSpan), 4) as 1 | 2 | 3 | 4 : 
+              element.properties.colSpan) : 
+            1;
+            
+          return (
+            <FormElement
+              key={element.id}
+              element={element}
+              onRemove={handleRemoveElement}
+              onEdit={onEditElement}
+              onDuplicate={onDuplicateElement}
+              isEditing={element.id === editingElementId}
+              colSpan={elementColSpan}
+              onColSpanChange={handleColSpanChange}
+              onIncreaseSpan={() => increaseColumnSpan(element.id)}
+              onDecreaseSpan={() => decreaseColumnSpan(element.id)}
+            />
+          );
+        })}
       </SortableContext>
     </DndContext>
   );
