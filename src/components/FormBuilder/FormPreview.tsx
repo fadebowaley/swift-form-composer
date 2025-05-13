@@ -100,11 +100,11 @@ const FormPreview = ({ elements, onSave, wizardMode = false }: FormPreviewProps)
         const size = element.properties.headerSize || 'h2';
         currentRow.push(
           <div className={widthClass} key={element.id}>
-            {size === 'h1' && <h1>{element.properties.headerText || 'Header'}</h1>}
-            {size === 'h2' && <h2>{element.properties.headerText || 'Header'}</h2>}
-            {size === 'h3' && <h3>{element.properties.headerText || 'Header'}</h3>}
-            {size === 'h4' && <h4>{element.properties.headerText || 'Header'}</h4>}
-            {size === 'h5' && <h5>{element.properties.headerText || 'Header'}</h5>}
+            {size === 'h1' && <h1 className="text-2xl font-bold">{element.properties.headerText || 'Header'}</h1>}
+            {size === 'h2' && <h2 className="text-xl font-bold">{element.properties.headerText || 'Header'}</h2>}
+            {size === 'h3' && <h3 className="text-lg font-bold">{element.properties.headerText || 'Header'}</h3>}
+            {size === 'h4' && <h4 className="text-base font-bold">{element.properties.headerText || 'Header'}</h4>}
+            {size === 'h5' && <h5 className="text-sm font-bold">{element.properties.headerText || 'Header'}</h5>}
           </div>
         );
       } else if (element.type === 'paragraph') {
@@ -115,27 +115,74 @@ const FormPreview = ({ elements, onSave, wizardMode = false }: FormPreviewProps)
         );
       } else if (element.type === 'button') {
         const buttonType = element.properties.buttonType || 'submit';
-        // Only render buttons in wizard mode if they are relevant to current step
-        if (!wizardMode || (wizardMode && (buttonType === 'submit' && isLastStep))) {
+        
+        // In wizard mode, only show back/next buttons if they're relevant
+        if (wizardMode) {
+          if (buttonType === 'next' && currentStep < steps.length - 1) {
+            currentRow.push(
+              <div className={widthClass} key={element.id}>
+                <Button 
+                  type="button" 
+                  variant={element.properties.buttonVariant || 'default'}
+                  className="w-full"
+                  onClick={nextStep}
+                >
+                  {element.properties.buttonText || 'Next'}
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            );
+          } else if (buttonType === 'back' && currentStep > 0) {
+            currentRow.push(
+              <div className={widthClass} key={element.id}>
+                <Button 
+                  type="button" 
+                  variant={element.properties.buttonVariant || 'outline'}
+                  className="w-full"
+                  onClick={prevStep}
+                >
+                  <ChevronLeft className="mr-2 h-4 w-4" />
+                  {element.properties.buttonText || 'Back'}
+                </Button>
+              </div>
+            );
+          } else if ((buttonType === 'submit' || !buttonType) && isLastStep) {
+            currentRow.push(
+              <div className={widthClass} key={element.id}>
+                <Button 
+                  type="submit" 
+                  variant={element.properties.buttonVariant || 'default'}
+                  className="w-full"
+                  onClick={form.handleSubmit(handleSubmit)}
+                >
+                  {element.properties.buttonText || 'Submit'}
+                  <Check className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            );
+          }
+        } else {
+          // Not in wizard mode, render all buttons
           currentRow.push(
             <div className={widthClass} key={element.id}>
               <Button 
-                type="submit" 
+                type={buttonType === 'submit' ? "submit" : "button"} 
                 variant={element.properties.buttonVariant || 'default'}
                 className="w-full"
-                onClick={handleSubmit}
+                onClick={buttonType === 'submit' ? form.handleSubmit(handleSubmit) : undefined}
               >
-                {element.properties.buttonText || 'Submit'}
+                {element.properties.buttonText || 'Button'}
               </Button>
             </div>
           );
         }
       } else {
-        // For all other element types
+        // For all other element types (text input, checkbox, etc.)
         currentRow.push(
           <div className={widthClass} key={element.id}>
-            {element.renderElement ? (
-              element.renderElement()
+            {/* Use renderPreview function if available, otherwise show a placeholder */}
+            {element.renderPreview ? (
+              element.renderPreview()
             ) : (
               <div className="p-2 border rounded-md text-sm text-muted-foreground">
                 {element.label || 'Form Element'}
@@ -174,7 +221,7 @@ const FormPreview = ({ elements, onSave, wizardMode = false }: FormPreviewProps)
             </div>
           ) : renderElements()}
           
-          {/* Wizard navigation controls */}
+          {/* Wizard navigation controls - only show if in wizard mode */}
           {wizardMode && (
             <div className="wizard-navigation border-t pt-4 mt-6 flex justify-between">
               <Button
