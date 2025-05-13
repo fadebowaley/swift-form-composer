@@ -1,0 +1,32 @@
+
+import { ElementType } from './types';
+
+export const ELEMENT_TYPES: Record<ElementType, { label: string; category: string }> = {
+  text: { label: 'Text Input', category: 'Basic' },
+  textarea: { label: 'Text Area', category: 'Basic' },
+  number: { label: 'Number Input', category: 'Basic' },
+  email: { label: 'Email Input', category: 'Basic' },
+  password: { label: 'Password Field', category: 'Basic' },
+  checkbox: { label: 'Checkbox Group', category: 'Selection' },
+  radio: { label: 'Radio Group', category: 'Selection' },
+  dropdown: { label: 'Dropdown', category: 'Selection' },
+  datepicker: { label: 'Date Picker', category: 'Advanced' },
+  timepicker: { label: 'Time Picker', category: 'Advanced' },
+  fileupload: { label: 'File Upload', category: 'Advanced' },
+  toggle: { label: 'Toggle Switch', category: 'Selection' },
+  slider: { label: 'Slider', category: 'Advanced' },
+  hidden: { label: 'Hidden Field', category: 'Special' },
+  button: { label: 'Button', category: 'Action' },
+  apidropdown: { label: 'API Dropdown', category: 'Special' },
+  rating: { label: 'Rating', category: 'Advanced' },
+  dependentDropdown: { label: 'Linked Dropdown', category: 'Selection' },
+  searchLookup: { label: 'DB Lookup', category: 'Special' },
+  captcha: { label: 'CAPTCHA', category: 'Special' },
+  signature: { label: 'Signature Pad', category: 'Advanced' },
+  locationPicker: { label: 'Location Picker', category: 'Advanced' },
+  header: { label: 'Form Header', category: 'Layout' },
+  paragraph: { label: 'Text Paragraph', category: 'Layout' },
+  divider: { label: 'Divider', category: 'Layout' },
+  spacer: { label: 'Spacer', category: 'Layout' },
+  container: { label: 'Container', category: 'Layout' },
+};
