@@ -4,6 +4,14 @@ import { FormElementType } from '@/types/form-builder';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
 import { FormDivider, FormSpacer, FormContainer } from './FormLayoutComponents';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
 
 interface FormElementsRendererProps {
   elements: FormElementType[];
@@ -56,7 +64,7 @@ const FormElementsRenderer = ({
       // Render different elements based on type
       if (element.type === 'header') {
         const size = element.properties.headerSize || 'h2';
-        const text = element.properties.headerText || 'Header';
+        const text = element.properties.headerText || element.properties.defaultValue || 'Header';
         const alignment = element.properties.headerAlignment || 'left';
         
         currentRow.push(
@@ -69,7 +77,7 @@ const FormElementsRenderer = ({
           </div>
         );
       } else if (element.type === 'paragraph') {
-        const text = element.properties.paragraphText || 'Paragraph text';
+        const text = element.properties.paragraphText || element.properties.defaultValue || 'Paragraph text';
         const alignment = element.properties.paragraphAlignment || 'left';
         
         currentRow.push(
@@ -171,20 +179,134 @@ const FormElementsRenderer = ({
           );
         }
       } else {
-        // For all other element types (text input, checkbox, etc.)
+        // For different input field types
         currentRow.push(
           <div className={widthClass} key={element.id}>
-            <div className="mb-1 text-sm font-medium">{element.label || 'Form Element'}</div>
-            {element.renderPreview ? (
-              element.renderPreview()
-            ) : (
-              <div className="p-2 border rounded-md text-sm text-muted-foreground">
-                {element.label || 'Form Element'}
-              </div>
-            )}
-            {element.properties.helpText && (
-              <div className="mt-1 text-xs text-muted-foreground">{element.properties.helpText}</div>
-            )}
+            <div className="space-y-2">
+              {element.label && <Label htmlFor={element.id}>{element.label}</Label>}
+              
+              {/* Text input field */}
+              {element.type === 'text' && (
+                <Input 
+                  id={element.id}
+                  type="text"
+                  placeholder={element.properties.placeholder || ''}
+                  defaultValue={element.properties.defaultValue || ''}
+                />
+              )}
+              
+              {/* Textarea field */}
+              {element.type === 'textarea' && (
+                <Textarea 
+                  id={element.id}
+                  placeholder={element.properties.placeholder || ''}
+                  defaultValue={element.properties.defaultValue || ''}
+                />
+              )}
+              
+              {/* Number field */}
+              {element.type === 'number' && (
+                <Input 
+                  id={element.id}
+                  type="number"
+                  min={element.properties.min}
+                  max={element.properties.max}
+                  step={element.properties.step}
+                  placeholder={element.properties.placeholder || ''}
+                  defaultValue={element.properties.defaultValue || ''}
+                />
+              )}
+              
+              {/* Email field */}
+              {element.type === 'email' && (
+                <Input 
+                  id={element.id}
+                  type="email"
+                  placeholder={element.properties.placeholder || ''}
+                  defaultValue={element.properties.defaultValue || ''}
+                />
+              )}
+              
+              {/* Password field */}
+              {element.type === 'password' && (
+                <Input 
+                  id={element.id}
+                  type="password"
+                  placeholder={element.properties.placeholder || ''}
+                />
+              )}
+              
+              {/* Checkbox group */}
+              {element.type === 'checkbox' && element.properties.options && (
+                <div className="space-y-2">
+                  {element.properties.options.map((option, idx) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <Checkbox id={`${element.id}-${idx}`} />
+                      <Label htmlFor={`${element.id}-${idx}`}>{option}</Label>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {/* Radio group */}
+              {element.type === 'radio' && element.properties.options && (
+                <RadioGroup defaultValue={element.properties.defaultValue}>
+                  {element.properties.options.map((option, idx) => (
+                    <div key={idx} className="flex items-center space-x-2">
+                      <RadioGroupItem value={option} id={`${element.id}-${idx}`} />
+                      <Label htmlFor={`${element.id}-${idx}`}>{option}</Label>
+                    </div>
+                  ))}
+                </RadioGroup>
+              )}
+              
+              {/* Dropdown */}
+              {element.type === 'dropdown' && element.properties.options && (
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder={element.properties.placeholder || "Select an option"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {element.properties.options.map((option, idx) => (
+                      <SelectItem key={idx} value={option}>{option}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {/* Toggle/Switch */}
+              {element.type === 'toggle' && (
+                <div className="flex items-center space-x-2">
+                  <Switch id={element.id} />
+                  <Label htmlFor={element.id}>
+                    {element.properties.defaultValue || 'Toggle'}
+                  </Label>
+                </div>
+              )}
+              
+              {/* Slider */}
+              {element.type === 'slider' && (
+                <Slider 
+                  defaultValue={[parseInt(element.properties.defaultValue || '50')]} 
+                  max={element.properties.max || 100} 
+                  min={element.properties.min || 0}
+                  step={element.properties.step || 1}
+                />
+              )}
+              
+              {/* Fallback for other element types */}
+              {!['text', 'textarea', 'number', 'email', 'password', 'checkbox', 'radio', 'dropdown', 'toggle', 'slider'].includes(element.type) && 
+               !['header', 'paragraph', 'divider', 'spacer', 'container', 'button'].includes(element.type) && (
+                <div className="p-2 border rounded-md text-sm text-muted-foreground">
+                  {element.label || 'Form Element'}
+                </div>
+              )}
+              
+              {/* Help text if available */}
+              {element.properties.helpText && (
+                <div className="text-xs text-muted-foreground">{element.properties.helpText}</div>
+              )}
+            </div>
           </div>
         );
       }
