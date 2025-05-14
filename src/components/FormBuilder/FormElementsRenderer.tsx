@@ -2,7 +2,7 @@
 import React from 'react';
 import { FormElementType } from '@/types/form-builder';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Check, Calendar, Clock, Upload } from 'lucide-react';
 import { FormDivider, FormSpacer, FormContainer } from './FormLayoutComponents';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -12,6 +12,8 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { cn } from '@/lib/utils';
 
 interface FormElementsRendererProps {
   elements: FormElementType[];
@@ -236,6 +238,48 @@ const FormElementsRenderer = ({
                 />
               )}
               
+              {/* Date picker */}
+              {element.type === 'datepicker' && (
+                <div className="flex w-full relative">
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="outline" className="w-full justify-start text-left">
+                        <Calendar className="mr-2 h-4 w-4" />
+                        <span>{element.properties.defaultValue || 'Pick a date'}</span>
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <div className="p-4 bg-background border rounded-md shadow-md">
+                        <div className="text-center p-2">Calendar (date picker UI)</div>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
+                </div>
+              )}
+              
+              {/* Time picker */}
+              {element.type === 'timepicker' && (
+                <Button variant="outline" className="w-full justify-start text-left">
+                  <Clock className="mr-2 h-4 w-4" />
+                  <span>{element.properties.defaultValue || 'Select time'}</span>
+                </Button>
+              )}
+              
+              {/* File upload */}
+              {element.type === 'fileupload' && (
+                <div className="flex flex-col gap-2">
+                  <Button variant="outline" className="w-full">
+                    <Upload className="mr-2 h-4 w-4" />
+                    <span>Choose file</span>
+                  </Button>
+                  <div className="text-xs text-muted-foreground">
+                    {element.properties.acceptedTypes ? 
+                      `Accepted formats: ${element.properties.acceptedTypes}` : 
+                      'All files accepted'}
+                  </div>
+                </div>
+              )}
+              
               {/* Checkbox group */}
               {element.type === 'checkbox' && element.properties.options && (
                 <div className="space-y-2">
@@ -274,6 +318,32 @@ const FormElementsRenderer = ({
                 </Select>
               )}
               
+              {/* API Dropdown */}
+              {element.type === 'apidropdown' && (
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Loading options..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="example1">Example Option 1</SelectItem>
+                    <SelectItem value="example2">Example Option 2</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              
+              {/* Dependent Dropdown */}
+              {element.type === 'dependentDropdown' && (
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select dependent option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="example1">Example Dependent Option 1</SelectItem>
+                    <SelectItem value="example2">Example Dependent Option 2</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+              
               {/* Toggle/Switch */}
               {element.type === 'toggle' && (
                 <div className="flex items-center space-x-2">
@@ -294,9 +364,71 @@ const FormElementsRenderer = ({
                 />
               )}
               
+              {/* Rating component */}
+              {element.type === 'rating' && (
+                <div className="flex items-center">
+                  {Array.from({ length: element.properties.maxRating || 5 }).map((_, i) => (
+                    <button 
+                      key={i}
+                      type="button" 
+                      className="text-yellow-400 text-lg focus:outline-none"
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              )}
+              
+              {/* Hidden field */}
+              {element.type === 'hidden' && (
+                <Input 
+                  id={element.id}
+                  type="hidden"
+                  defaultValue={element.properties.defaultValue || ''}
+                />
+              )}
+              
+              {/* Search/DB Lookup */}
+              {element.type === 'searchLookup' && (
+                <div>
+                  <Input 
+                    type="search" 
+                    placeholder="Search database..." 
+                  />
+                  <div className="text-xs text-muted-foreground mt-1">
+                    Type to search from database
+                  </div>
+                </div>
+              )}
+              
+              {/* Captcha */}
+              {element.type === 'captcha' && (
+                <div className="border border-gray-200 rounded-md p-4 bg-muted/20 flex items-center justify-center">
+                  <div className="text-sm text-muted-foreground">CAPTCHA verification would appear here</div>
+                </div>
+              )}
+              
+              {/* Signature pad */}
+              {element.type === 'signature' && (
+                <div 
+                  className="border border-gray-200 rounded-md h-32 flex items-center justify-center bg-white"
+                  style={{ height: `${element.properties.signatureHeight || 150}px` }}
+                >
+                  <div className="text-sm text-muted-foreground italic">Sign here</div>
+                </div>
+              )}
+              
+              {/* Location picker */}
+              {element.type === 'locationPicker' && (
+                <div className="border border-gray-200 rounded-md h-48 flex items-center justify-center bg-muted/20">
+                  <div className="text-sm text-muted-foreground">Map location picker would appear here</div>
+                </div>
+              )}
+              
               {/* Fallback for other element types */}
-              {!['text', 'textarea', 'number', 'email', 'password', 'checkbox', 'radio', 'dropdown', 'toggle', 'slider'].includes(element.type) && 
-               !['header', 'paragraph', 'divider', 'spacer', 'container', 'button'].includes(element.type) && (
+              {!['text', 'textarea', 'number', 'email', 'password', 'checkbox', 'radio', 'dropdown', 'toggle', 'slider',
+                  'datepicker', 'timepicker', 'fileupload', 'header', 'paragraph', 'divider', 'spacer', 'container', 'button',
+                  'apidropdown', 'rating', 'dependentDropdown', 'searchLookup', 'captcha', 'signature', 'locationPicker', 'hidden'].includes(element.type) && (
                 <div className="p-2 border rounded-md text-sm text-muted-foreground">
                   {element.label || 'Form Element'}
                 </div>
