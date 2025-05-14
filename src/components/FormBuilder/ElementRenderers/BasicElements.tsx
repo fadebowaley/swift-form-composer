@@ -17,6 +17,7 @@ export const TextInput = ({ element }: BasicElementProps) => (
       type="text"
       placeholder={element.properties.placeholder || ''}
       defaultValue={element.properties.defaultValue || ''}
+      disabled={element.properties.disabled}
     />
     {element.properties.helpText && (
       <div className="text-xs text-muted-foreground">{element.properties.helpText}</div>
@@ -31,6 +32,7 @@ export const TextareaInput = ({ element }: BasicElementProps) => (
       id={element.id}
       placeholder={element.properties.placeholder || ''}
       defaultValue={element.properties.defaultValue || ''}
+      disabled={element.properties.disabled}
     />
     {element.properties.helpText && (
       <div className="text-xs text-muted-foreground">{element.properties.helpText}</div>
@@ -49,6 +51,7 @@ export const NumberInput = ({ element }: BasicElementProps) => (
       step={element.properties.step}
       placeholder={element.properties.placeholder || ''}
       defaultValue={element.properties.defaultValue || ''}
+      disabled={element.properties.disabled}
     />
     {element.properties.helpText && (
       <div className="text-xs text-muted-foreground">{element.properties.helpText}</div>
@@ -64,6 +67,7 @@ export const EmailInput = ({ element }: BasicElementProps) => (
       type="email"
       placeholder={element.properties.placeholder || ''}
       defaultValue={element.properties.defaultValue || ''}
+      disabled={element.properties.disabled}
     />
     {element.properties.helpText && (
       <div className="text-xs text-muted-foreground">{element.properties.helpText}</div>
@@ -78,6 +82,7 @@ export const PasswordInput = ({ element }: BasicElementProps) => (
       id={element.id}
       type="password"
       placeholder={element.properties.placeholder || ''}
+      disabled={element.properties.disabled}
     />
     {element.properties.helpText && (
       <div className="text-xs text-muted-foreground">{element.properties.helpText}</div>

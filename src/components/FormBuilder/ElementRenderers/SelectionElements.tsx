@@ -17,7 +17,10 @@ export const CheckboxGroup = ({ element }: SelectionElementProps) => (
     <div className="space-y-2">
       {element.properties.options && element.properties.options.map((option, idx) => (
         <div key={idx} className="flex items-center space-x-2">
-          <Checkbox id={`${element.id}-${idx}`} />
+          <Checkbox 
+            id={`${element.id}-${idx}`} 
+            disabled={element.properties.disabled}
+          />
           <Label htmlFor={`${element.id}-${idx}`}>{option}</Label>
         </div>
       ))}
@@ -31,7 +34,7 @@ export const CheckboxGroup = ({ element }: SelectionElementProps) => (
 export const RadioButtonGroup = ({ element }: SelectionElementProps) => (
   <div className="space-y-2">
     {element.label && <Label>{element.label}</Label>}
-    <RadioGroup defaultValue={element.properties.defaultValue}>
+    <RadioGroup defaultValue={element.properties.defaultValue} disabled={element.properties.disabled}>
       {element.properties.options && element.properties.options.map((option, idx) => (
         <div key={idx} className="flex items-center space-x-2">
           <RadioGroupItem value={option} id={`${element.id}-${idx}`} />
@@ -48,7 +51,7 @@ export const RadioButtonGroup = ({ element }: SelectionElementProps) => (
 export const DropdownSelect = ({ element }: SelectionElementProps) => (
   <div className="space-y-2">
     {element.label && <Label htmlFor={element.id}>{element.label}</Label>}
-    <Select>
+    <Select disabled={element.properties.disabled}>
       <SelectTrigger id={element.id}>
         <SelectValue placeholder={element.properties.placeholder || "Select an option"} />
       </SelectTrigger>
@@ -67,7 +70,7 @@ export const DropdownSelect = ({ element }: SelectionElementProps) => (
 export const ApiDropdown = ({ element }: SelectionElementProps) => (
   <div className="space-y-2">
     {element.label && <Label htmlFor={element.id}>{element.label}</Label>}
-    <Select>
+    <Select disabled={element.properties.disabled}>
       <SelectTrigger id={element.id}>
         <SelectValue placeholder="Loading options..." />
       </SelectTrigger>
@@ -85,7 +88,7 @@ export const ApiDropdown = ({ element }: SelectionElementProps) => (
 export const DependentDropdown = ({ element }: SelectionElementProps) => (
   <div className="space-y-2">
     {element.label && <Label htmlFor={element.id}>{element.label}</Label>}
-    <Select>
+    <Select disabled={element.properties.disabled}>
       <SelectTrigger id={element.id}>
         <SelectValue placeholder="Select dependent option" />
       </SelectTrigger>
@@ -103,7 +106,7 @@ export const DependentDropdown = ({ element }: SelectionElementProps) => (
 export const ToggleSwitch = ({ element }: SelectionElementProps) => (
   <div className="space-y-2">
     <div className="flex items-center space-x-2">
-      <Switch id={element.id} />
+      <Switch id={element.id} disabled={element.properties.disabled} />
       <Label htmlFor={element.id}>
         {element.properties.defaultValue || element.label || 'Toggle'}
       </Label>

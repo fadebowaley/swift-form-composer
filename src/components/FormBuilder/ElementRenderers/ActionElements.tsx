@@ -26,6 +26,7 @@ export const ButtonElement = ({
   const buttonType = element.properties.buttonType || 'submit';
   const buttonText = element.properties.buttonText || 'Button';
   const buttonVariant = element.properties.buttonVariant || 'default';
+  const isDisabled = element.properties.disabled;
   
   // In wizard mode, only show back/next buttons if they're relevant
   if (wizardMode) {
@@ -36,6 +37,7 @@ export const ButtonElement = ({
           variant={buttonVariant}
           className="w-full"
           onClick={nextStep}
+          disabled={isDisabled}
         >
           {buttonText || 'Next'}
           <ChevronRight className="ml-2 h-4 w-4" />
@@ -48,6 +50,7 @@ export const ButtonElement = ({
           variant={buttonVariant || 'outline'}
           className="w-full"
           onClick={prevStep}
+          disabled={isDisabled}
         >
           <ChevronLeft className="mr-2 h-4 w-4" />
           {buttonText || 'Back'}
@@ -60,6 +63,7 @@ export const ButtonElement = ({
           variant={buttonVariant}
           className="w-full"
           onClick={handleSubmit}
+          disabled={isDisabled}
         >
           {buttonText || 'Submit'}
           <Check className="ml-2 h-4 w-4" />
@@ -76,6 +80,7 @@ export const ButtonElement = ({
       variant={buttonVariant}
       className="w-full"
       onClick={buttonType === 'submit' ? handleSubmit : undefined}
+      disabled={isDisabled}
     >
       {buttonText || 'Button'}
     </Button>

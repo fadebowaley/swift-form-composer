@@ -64,6 +64,7 @@ export interface FormElementType {
     apiEndpoint?: string;
     ratingType?: 'star' | 'emoji';
     maxRating?: number;
+    disabled?: boolean;
     // Dependent dropdown properties
     parentDropdown?: string;
     optionsMap?: Record<string, string[]>;
@@ -105,6 +106,7 @@ export interface FormElementType {
     // Container properties
     containerVariant?: 'default' | 'card' | 'outlined' | 'shaded';
     containerPadding?: 'small' | 'medium' | 'large';
+    containerContent?: string;
     // Column span (for all elements)
     colSpan?: 1 | 2 | 3 | 4;
     [key: string]: any;
